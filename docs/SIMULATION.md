@@ -25,6 +25,7 @@
 - UDP, DNS, HTTP, IPv6, distance-vector routing, and link-state routing are not implemented.
 - The timeline is generated from the engine's deterministic event list and revealed through UI playback. Browser timers control presentation only; protocol timing is determined by simulation timestamps.
 - Topologies and edits are in-memory only. Refreshing the page resets them.
+- Attack walkthroughs on the Learn page are separate, browser-only teaching models. They do not create or send packets. The service-availability demo uses invented capacity units to illustrate overload and mitigation; its values are not traffic rates or real performance measurements.
 
 ## Interpreting results
 

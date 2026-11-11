@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { areInSameSubnet, calculateSubnet, EventQueue, isValidSubnetMask, NetworkSimulator } from "./engine";
 import { longestPrefixMatch, type StaticRoute } from "./routing";
+import { simulateAttackLoad } from "./attack-demo";
 import type { SimTopology } from "./types";
 
 const topology: SimTopology = {
@@ -111,5 +112,36 @@ describe("longest-prefix route lookup", () => {
     expect(longestPrefixMatch(routes, "10.20.3.4")?.prefixLength).toBe(8);
     expect(longestPrefixMatch(routes, "172.16.0.1")?.prefixLength).toBe(0);
     expect(longestPrefixMatch(routes.slice(1), "172.16.0.1")).toBeUndefined();
+  });
+});
+
+describe("attack demonstration load model", () => {
+  it("keeps baseline load without generating an attack", () => {
+    expect(simulateAttackLoad(120, false, false)).toMatchObject({
+      baselineLoad: 25,
+      attackPressure: 0,
+      totalLoad: 25,
+      overloaded: false,
+    });
+  });
+
+  it("models overload and mitigation without exceeding service capacity", () => {
+    expect(simulateAttackLoad(120, true, false)).toMatchObject({
+      attackPressure: 120,
+      totalLoad: 145,
+      utilizationPercent: 100,
+      overloaded: true,
+    });
+    expect(simulateAttackLoad(120, true, true)).toMatchObject({
+      effectiveAttackPressure: 42,
+      totalLoad: 67,
+      utilizationPercent: 67,
+      overloaded: false,
+    });
+  });
+
+  it("clamps the configured pressure to the model's range", () => {
+    expect(simulateAttackLoad(500, true, false).attackPressure).toBe(150);
+    expect(simulateAttackLoad(-10, true, false).attackPressure).toBe(0);
   });
 });
