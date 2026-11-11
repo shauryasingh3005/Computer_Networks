@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # NetLab
 
 NetLab is a local-first computer networks learning and simulation project. The current MVP combines a React Flow topology editor, deterministic Ethernet/ARP/IPv4/ICMP ping, a subnet calculator, longest-prefix route lookup, an educational TCP handshake, four interactive guided labs, and a repairable troubleshooting challenge.
@@ -50,3 +51,6 @@ The simulation tests exercise event ordering, IPv4 and subnet calculations, ARP 
 - `src/simulation/engine.test.ts` contains focused unit tests for the engine.
 
 See [Architecture](docs/ARCHITECTURE.md), [Simulation limitations](docs/SIMULATION.md), and [Demonstration guide](docs/DEMO.md).
+=======
+# Computer_Networks
+>>>>>>> 115f2e98b388bb80395880f982b07d98107b282f
