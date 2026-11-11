@@ -6,8 +6,8 @@ const categories = [
   { id: "01", title: "Category 1", status: "pending" },
   { id: "02", title: "Network-layer attacks", status: "ready" },
   { id: "03", title: "Denial-of-Service attacks", status: "ready" },
-  { id: "04", title: "Category 4", status: "pending" },
-  { id: "05", title: "Category 5", status: "pending" },
+  { id: "04", title: "DNS attacks", status: "ready" },
+  { id: "05", title: "Wireless network attacks", status: "ready" },
   { id: "06", title: "Category 6", status: "pending" },
   { id: "07", title: "Category 7", status: "pending" },
 ];
@@ -37,6 +37,22 @@ const dosAttacks = [
   { name: "Smurf Attack", how: "Abuses ICMP broadcast responses to amplify traffic toward a target.", prevention: "Disable directed broadcasts and use ingress filtering." },
 ];
 
+const dnsAttacks = [
+  { name: "DNS Spoofing", how: "Returns false DNS data to misdirect a domain lookup.", prevention: "Validate DNSSEC signatures and use trusted resolvers." },
+  { name: "DNS Cache Poisoning", how: "Adds malicious records to a resolver cache so later lookups return an incorrect address.", prevention: "Enable DNSSEC validation and secure resolver configuration." },
+  { name: "DNS Hijacking", how: "Changes a device or network's DNS settings to redirect lookups.", prevention: "Secure router administration with MFA and monitor DNS settings." },
+  { name: "DNS Tunnelling", how: "Encodes data in DNS queries and responses to evade normal network controls.", prevention: "Inspect DNS traffic, detect anomalies, and apply restrictive DNS policies." },
+  { name: "DNS Amplification", how: "Abuses open resolvers to send amplified responses toward a target.", prevention: "Disable open recursion and apply response rate limiting." },
+];
+
+const wirelessAttacks = [
+  { name: "Evil Twin Attack", how: "A fake Wi-Fi access point imitates a trusted network to lure users into connecting.", prevention: "WPA3-Enterprise, certificate validation, and trusted access points." },
+  { name: "Deauthentication Attack", how: "Forged management frames attempt to disconnect wireless clients.", prevention: "Protected Management Frames (802.11w) and WPA3." },
+  { name: "Wi-Fi Password Cracking", how: "Attempts to guess or recover a wireless network's password, especially when it is weak.", prevention: "Use strong passwords and WPA3, and disable WPS." },
+  { name: "Rogue Access Point", how: "An unauthorized access point is connected to or operated near a protected network.", prevention: "Wireless IDS/IPS and access-point monitoring." },
+  { name: "Packet Sniffing", how: "Captures wireless traffic that may be exposed on an untrusted or inadequately protected network.", prevention: "Use WPA2/WPA3 encryption and TLS for application traffic." },
+];
+
 export default function LearnPage() {
   return (
     <div className="app-shell">
@@ -51,10 +67,10 @@ export default function LearnPage() {
         <header className="topbar"><div className="breadcrumbs"><Link href="/">Workspace</Link><ChevronRight size={14} /><strong>Learn</strong></div><div className="topbar-right"><span className="environment-pill"><span className="status-dot" />Attack library</span></div></header>
         <div className="page-content learn-content">
           <div className="eyebrow"><span className="eyebrow-line" />NETWORK SECURITY / ATTACKS & DEFENSES</div>
-          <section className="learn-intro attack-intro"><div><h1 className="learn-title">Know the attack.<br /><span>Understand the defense.</span></h1><p className="welcome-copy">Explore how common network attacks work, what they put at risk, and the controls that help prevent them.</p></div><div className="learn-count"><span>02 / 07</span><small>CATEGORIES DETAILED</small></div></section>
+          <section className="learn-intro attack-intro"><div><h1 className="learn-title">Know the attack.<br /><span>Understand the defense.</span></h1><p className="welcome-copy">Explore how common network attacks work, what they put at risk, and the controls that help prevent them.</p></div><div className="learn-count"><span>04 / 07</span><small>CATEGORIES DETAILED</small></div></section>
 
           <section className="attack-category-index" id="categories" aria-labelledby="category-index-title">
-            <div className="section-heading"><div><div className="section-kicker">ATTACK LIBRARY</div><h2 id="category-index-title">Seven categories</h2></div><span className="lab-guide-note">Two categories detailed</span></div>
+            <div className="section-heading"><div><div className="section-kicker">ATTACK LIBRARY</div><h2 id="category-index-title">Seven categories</h2></div><span className="lab-guide-note">Four categories detailed</span></div>
             <div className="category-index-grid">{categories.map((category) => category.status === "ready" ? <a className="category-index-item ready" href={`#category-${category.id}`} key={category.id}><span className="category-index-number">{category.id}</span><span className="category-index-title">{category.title}</span><ArrowRight size={14} /></a> : <div className="category-index-item pending" key={category.id}><span className="category-index-number">{category.id}</span><span className="category-index-title">{category.title}</span><small>CONTENT PENDING</small></div>)}</div>
           </section>
 
@@ -78,7 +94,29 @@ export default function LearnPage() {
             <article className="syn-explainer"><div className="syn-copy"><div className="section-kicker">IMPORTANT ATTACK TO UNDERSTAND</div><h3>Inside a SYN flood</h3><p>TCP normally completes a three-step handshake before a connection is established. In a SYN flood, many requests stop before the final step, leaving pending connection resources occupied.</p><div className="syn-prevention"><strong>DEFENSE</strong><span>SYN cookies, connection management, rate limiting, and upstream filtering.</span></div></div><div className="handshake" aria-label="TCP handshake compared with incomplete SYN flood requests"><div className="handshake-label">NORMAL TCP HANDSHAKE</div><div className="handshake-step"><span>CLIENT</span><b>SYN</b><span>SERVER</span></div><div className="handshake-step"><span>CLIENT</span><b>SYN-ACK</b><span>SERVER</span></div><div className="handshake-step complete"><span>CLIENT</span><b>ACK</b><span>SERVER</span></div><div className="handshake-label flood-label">SYN FLOOD</div><div className="flood-step"><span>MANY REQUESTS</span><b>SYN</b><span>PENDING</span></div></div></article>
           </section>
 
-          <footer className="learn-footer"><span>Attack categories 1 and 4–7 are ready for their content.</span><Link href="/">Back to overview <ArrowRight size={14} /></Link></footer>
+          <section className="attack-category" id="category-04" aria-labelledby="dns-attacks-title">
+            <div className="attack-category-heading"><div><div className="section-kicker">CATEGORY 04</div><h2 id="dns-attacks-title">DNS attacks</h2><p>Attacks that exploit name resolution to redirect users, hide activity, or disrupt DNS availability.</p></div><span className="attack-count">5 ATTACKS</span></div>
+            <div className="attack-list" role="list" aria-label="DNS attacks">{dnsAttacks.map((attack) => <article className="attack-row" role="listitem" key={attack.name}><h3>{attack.name}</h3><div className="attack-cell"><span>HOW IT WORKS</span><p>{attack.how}</p></div><div className="attack-cell"><span>PREVENTION</span><p>{attack.prevention}</p></div></article>)}</div>
+            <AttackSimulation mode="dns" />
+            <div className="important-attacks"><div className="section-heading"><div><div className="section-kicker">IMPORTANT ATTACK TO UNDERSTAND</div><h3>When a DNS answer cannot be trusted</h3></div></div>
+              <div className="attack-explainer-grid">
+                <article className="attack-explainer"><div className="explainer-number">04 / DNS</div><h4>DNS Cache Poisoning</h4><p>A resolver should return the legitimate address for a domain. If a false record enters its cache, users may be directed to an attacker-controlled destination instead. DNSSEC validation helps a resolver verify signed DNS data.</p><div className="explainer-control"><BookOpen size={14} /><span>Further reading: <a href="https://images.openai.com/static-rsc-4/BHkEW4uXkmThTSJlwakD4F5Fy17_5IrgmyJdZvga6Xq_Ig04bV0YEogqEJtCYDTiQlvlSTv8HLCdRWdaWqV_eei616OfYlOvAfNQLyGytgU-u9WgShFWVYioSAek5k80Madw__211cMViMumPg77PqIJL8lkSNoDsv4zWVVYAiI?purpose=inline" target="_blank" rel="noreferrer">DNS spoofing and cache poisoning</a>; <a href="https://images.openai.com/static-rsc-4/hWpsSg-8Qbi_oGx6VXg5OMgbXrOoam0e7Fx4d1jbE-32r1yprmoiZ0LcZHQt2okQIvKUFMIdq6cHn8gBJAIg5YEKpe4HbNKkDlCSgesaw_g0S0EHxMtCU955uAeTLvcvI3QB3RJd3FvPyVewHtsnEIdiU20pWQ7X3eNtYHf7pRM?purpose=inline" target="_blank" rel="noreferrer">DNS tunnelling</a>; <a href="https://images.openai.com/static-rsc-4/BuXkBAbgDmCGsye3xtLMO4e_vnf2LHZs1dMydAm3ugjfvRRIPgRluCD9fJ909QESHnsCSFTBqja3qrx2E9Uye5ZF2SDXgQK2POdhnkMLRHFr5uqYW3fqTLInz4LCx-Dc3URVtrMNQTwqZ_I-omMaE14SmIstQjkhyCqF59VDPs?purpose=inline" target="_blank" rel="noreferrer">F5 Labs DNS overview</a>.</span></div></article>
+              </div>
+            </div>
+          </section>
+
+          <section className="attack-category" id="category-05" aria-labelledby="wireless-attacks-title">
+            <div className="attack-category-heading"><div><div className="section-kicker">CATEGORY 05</div><h2 id="wireless-attacks-title">Wireless network attacks</h2><p>Attacks that target Wi-Fi access points, radio communication, and wireless clients.</p></div><span className="attack-count">5 ATTACKS</span></div>
+            <div className="attack-list" role="list" aria-label="Wireless network attacks">{wirelessAttacks.map((attack) => <article className="attack-row" role="listitem" key={attack.name}><h3>{attack.name}</h3><div className="attack-cell"><span>HOW IT WORKS</span><p>{attack.how}</p></div><div className="attack-cell"><span>PREVENTION</span><p>{attack.prevention}</p></div></article>)}</div>
+            <AttackSimulation mode="wireless" />
+            <div className="important-attacks"><div className="section-heading"><div><div className="section-kicker">IMPORTANT ATTACK TO UNDERSTAND</div><h3>Check the access point before connecting</h3></div></div>
+              <div className="attack-explainer-grid">
+                <article className="attack-explainer"><div className="explainer-number">05 / WI-FI</div><h4>Evil Twin Attack</h4><p>A fake access point may copy a familiar network name, such as Campus-WiFi. A user who connects to it may expose traffic or credentials, especially if they bypass certificate warnings or use an untrusted sign-in page. Verify the network identity before connecting.</p><div className="explainer-control"><BookOpen size={14} /><span>Further reading: <a href="https://images.openai.com/static-rsc-4/D3e6r8EXM2yEgvR9vxSi-PR_5tJ9xdXK9lfku6cT2D8N329PhcPco8eLVkw2EmGZoquedJi7zAwmaFj8zofdfX8BEc1AIaz0D2G12LY3rbhfOycZ6q6I1uKMJSVNdgAE1bzY7O-hjByBZxcYY3iUbFCKfAYygZVi82RspAJGQq4?purpose=inline" target="_blank" rel="noreferrer">Evil Twin attacks</a>; <a href="https://images.openai.com/static-rsc-4/03La7WYoRVFYpbvFSs8tZgbAoJhclEJjURhtzsOlLpMhTsJbl2Ckfr4uvy-XUMBQE1-HfZ_Q_C-bf6tU4-qHqXXzB0oj1Cf24aTvSMwRTG3CRDTR87UeYMbqx8NIDMDCSC43Q4UXPwc4l0EBwxnbb3Hqb1CFe-qeBfj0adOhX6Y?purpose=inline" target="_blank" rel="noreferrer">wireless network security</a>; <a href="https://images.openai.com/static-rsc-4/Of7pQ9FszoMZwN9jJW-RdN_TEq7waYAiij7x-sZ44zOohoRNmLGSWz-SMDAMeOaE9hXlz5qbQgr0Qj3En0VeNZc7un2rgYBCNqk_Wuc8QD6EdusZfi_4fZvpPUU_tCQc4ZU7EizZAp-zaXHtI-lUBzcacUB55Unt4C6rsQKl13g?purpose=inline" target="_blank" rel="noreferrer">VPN overview</a>.</span></div></article>
+              </div>
+            </div>
+          </section>
+
+          <footer className="learn-footer"><span>Attack categories 1, 6, and 7 are ready for their content.</span><Link href="/">Back to overview <ArrowRight size={14} /></Link></footer>
         </div>
       </main>
     </div>

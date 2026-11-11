@@ -27,6 +27,35 @@ const dosScenarios = [
   { id: "smurf", name: "Smurf attack", loadLabel: "Amplified ICMP demand", defense: "Disable directed broadcasts and apply ingress filtering" },
 ];
 
+type AttackWalkthroughScenario = {
+  id: string;
+  name: string;
+  normal: string;
+  exposed: string;
+  defended: string;
+  defense: string;
+  indicator: string;
+  normalPath: [string, string, string];
+  exposedPath: [string, string, string];
+  defendedPath: [string, string, string];
+};
+
+const dnsScenarios: AttackWalkthroughScenario[] = [
+  { id: "dns-spoof", name: "DNS spoofing", normal: "A resolver returns the legitimate address for a domain.", exposed: "The illustrative lookup receives a false response and points to an incorrect address.", defended: "DNSSEC validation rejects an unsigned or invalid response before it is used.", defense: "DNSSEC validation and trusted resolvers", indicator: "Lookup answer: validated → untrusted", normalPath: ["CLIENT", "TRUSTED RESOLVER", "CORRECT ADDRESS"], exposedPath: ["CLIENT", "FALSE RESPONSE", "WRONG ADDRESS"], defendedPath: ["CLIENT", "VALIDATED ANSWER", "CORRECT ADDRESS"] },
+  { id: "dns-cache", name: "DNS cache poisoning", normal: "The resolver cache contains the expected record for the domain.", exposed: "A poisoned cache entry causes later lookups to return an incorrect address.", defended: "DNSSEC validation and secure resolver configuration prevent the untrusted record from being accepted.", defense: "DNSSEC validation and secure resolver configuration", indicator: "Cached record: expected → untrusted", normalPath: ["CLIENT", "VALID CACHE", "CORRECT ADDRESS"], exposedPath: ["CLIENT", "POISONED CACHE", "WRONG ADDRESS"], defendedPath: ["CLIENT", "VALIDATED CACHE", "CORRECT ADDRESS"] },
+  { id: "dns-hijack", name: "DNS hijacking", normal: "The device uses the resolver configured by its administrator.", exposed: "Changed DNS settings redirect lookups to an untrusted resolver.", defended: "Protected router administration and DNS monitoring help detect and prevent unauthorized setting changes.", defense: "Secure router administration, MFA, and DNS monitoring", indicator: "Configured resolver: trusted → untrusted", normalPath: ["DEVICE", "MANAGED SETTINGS", "TRUSTED DNS"], exposedPath: ["DEVICE", "CHANGED SETTINGS", "UNTRUSTED DNS"], defendedPath: ["DEVICE", "MONITORED SETTINGS", "TRUSTED DNS"] },
+  { id: "dns-tunnel", name: "DNS tunnelling", normal: "DNS queries follow the network's expected policy and usage patterns.", exposed: "Unusual query patterns illustrate how DNS can be misused as a hidden data channel.", defended: "DNS inspection and restrictive policies flag and block anomalous query patterns.", defense: "DNS traffic inspection and restrictive DNS policies", indicator: "Query pattern: expected → anomalous", normalPath: ["CLIENT", "DNS POLICY", "RESOLVER"], exposedPath: ["CLIENT", "UNUSUAL QUERIES", "HIDDEN CHANNEL"], defendedPath: ["CLIENT", "INSPECTED QUERIES", "POLICY ENFORCED"] },
+  { id: "dns-amplification", name: "DNS amplification", normal: "A resolver answers permitted requests with appropriately sized responses.", exposed: "An open resolver can send oversized responses toward a spoofed destination.", defended: "Restricting recursion and applying response rate limits reduces resolver abuse.", defense: "Disable open recursion and apply response rate limiting", indicator: "Resolver access: restricted → open", normalPath: ["CLIENT", "RESTRICTED DNS", "EXPECTED REPLY"], exposedPath: ["SPOOFED SOURCE", "OPEN RESOLVER", "LARGE REPLIES"], defendedPath: ["CLIENT", "RATE-LIMITED DNS", "EXPECTED REPLY"] },
+];
+
+const wirelessScenarios: AttackWalkthroughScenario[] = [
+  { id: "evil-twin", name: "Evil Twin", normal: "The client connects to the verified campus access point.", exposed: "A lookalike access point may lure a client onto an untrusted network.", defended: "Certificate validation helps the client reject an impersonating access point.", defense: "WPA3-Enterprise and certificate validation", indicator: "Access point: verified → untrusted lookalike", normalPath: ["CLIENT", "VERIFIED AP", "CAMPUS NETWORK"], exposedPath: ["CLIENT", "LOOKALIKE AP", "UNTRUSTED NETWORK"], defendedPath: ["CLIENT", "CERTIFICATE CHECK", "VERIFIED AP"] },
+  { id: "deauth", name: "Deauthentication", normal: "The client maintains an authenticated connection to the access point.", exposed: "Forged management frames are shown as an attempt to interrupt the wireless session.", defended: "Protected Management Frames reject unauthenticated management traffic.", defense: "Protected Management Frames (802.11w) and WPA3", indicator: "Management frame: authenticated → forged", normalPath: ["CLIENT", "AUTHENTICATED AP", "ACTIVE SESSION"], exposedPath: ["CLIENT", "FORGED FRAME", "SESSION INTERRUPTED"], defendedPath: ["CLIENT", "PMF CHECK", "SESSION PROTECTED"] },
+  { id: "wifi-password", name: "Wi-Fi password cracking", normal: "A client authenticates with a strong, protected network credential.", exposed: "A weak shared password puts network access at risk; no password guessing is performed by this demo.", defended: "A strong WPA3 credential and disabled WPS reduce the risk of unauthorized access.", defense: "Strong passwords, WPA3, and disabling WPS", indicator: "Credential strength: strong → weak", normalPath: ["CLIENT", "STRONG CREDENTIAL", "ACCESS CONTROL"], exposedPath: ["CLIENT", "WEAK CREDENTIAL", "ACCESS AT RISK"], defendedPath: ["CLIENT", "WPA3 AUTH", "ACCESS CONTROL"] },
+  { id: "rogue-ap", name: "Rogue access point", normal: "Managed access points provide monitored wireless network access.", exposed: "An unauthorized access point creates an unmanaged path into the environment.", defended: "Wireless monitoring and network access controls help identify and contain unauthorized access points.", defense: "Wireless IDS/IPS and access-point monitoring", indicator: "Access point: managed → unauthorized", normalPath: ["CLIENT", "MANAGED AP", "CONTROLLED LAN"], exposedPath: ["CLIENT", "ROGUE AP", "UNMANAGED PATH"], defendedPath: ["CLIENT", "MONITORED AP", "ACCESS CONTROL"] },
+  { id: "wifi-sniffing", name: "Wireless packet sniffing", normal: "Encryption protects application data carried over the wireless network.", exposed: "On an untrusted or inadequately protected network, exposed traffic may be observable.", defended: "WPA2/WPA3 and TLS protect captured traffic from being read as plaintext.", defense: "WPA2/WPA3 encryption and TLS", indicator: "Captured payload: readable → encrypted", normalPath: ["CLIENT", "ENCRYPTED WI-FI", "SERVICE"], exposedPath: ["CLIENT", "OPEN WI-FI", "EXPOSED TRAFFIC"], defendedPath: ["CLIENT", "ENCRYPTED WI-FI", "PROTECTED DATA"] },
+];
+
 function NetworkAttackDemo() {
   const [scenarioId, setScenarioId] = useState(networkScenarios[0].id);
   const [attackActive, setAttackActive] = useState(false);
@@ -99,6 +128,43 @@ function ServiceLoadDemo() {
   );
 }
 
-export default function AttackSimulation({ mode }: { mode: "network" | "dos" }) {
-  return mode === "network" ? <NetworkAttackDemo /> : <ServiceLoadDemo />;
+function AttackWalkthroughDemo({ title, titleId, scenarios }: { title: string; titleId: string; scenarios: AttackWalkthroughScenario[] }) {
+  const [scenarioId, setScenarioId] = useState(scenarios[0].id);
+  const [attackActive, setAttackActive] = useState(false);
+  const [mitigationsEnabled, setMitigationsEnabled] = useState(false);
+  const scenario = scenarios.find((item) => item.id === scenarioId) ?? scenarios[0];
+  const attackBlocked = attackActive && mitigationsEnabled;
+  const attackVisible = attackActive && !mitigationsEnabled;
+  const message = !attackActive ? scenario.normal : attackBlocked ? scenario.defended : scenario.exposed;
+  const path = attackVisible ? scenario.exposedPath : attackBlocked ? scenario.defendedPath : scenario.normalPath;
+  const roles = ["SOURCE", "CONTROL POINT", "OUTCOME"];
+
+  function changeScenario(id: string) {
+    setScenarioId(id);
+    setAttackActive(false);
+  }
+
+  return (
+    <section className="attack-simulation" aria-labelledby={titleId}>
+      <div className="demo-heading"><div><div className="section-kicker">LOCAL WALKTHROUGH</div><h3 id={titleId}>{title}</h3><p>Select an attack, compare the illustrative risk, then apply defenses.</p></div><span className="demo-badge">NO NETWORK TRAFFIC</span></div>
+      <div className="demo-control-row">
+        <label className="demo-select-label">SCENARIO<select value={scenarioId} onChange={(event) => changeScenario(event.target.value)}>{scenarios.map((item) => <option value={item.id} key={item.id}>{item.name}</option>)}</select></label>
+        <button className="button button-primary demo-run-button" type="button" onClick={() => setAttackActive((active) => !active)}><Activity size={14} />{attackActive ? "Reset scenario" : "Simulate attack"}</button>
+        <label className="demo-checkbox"><input type="checkbox" checked={mitigationsEnabled} onChange={(event) => setMitigationsEnabled(event.target.checked)} /><span>Apply defenses</span></label>
+      </div>
+      <div className={`demo-result ${attackBlocked ? "blocked" : attackVisible ? "exposed" : "idle"}`} aria-live="polite">{attackBlocked ? <ShieldCheck size={16} /> : attackVisible ? <ShieldX size={16} /> : <Activity size={16} />}<span>{message}</span></div>
+      <div className={`demo-network-flow${attackVisible ? " attack-visible" : ""}`} aria-label={`${scenario.name} illustrative flow`}>
+        {path.map((node, index) => <div className={`demo-network-node${index === 1 ? " transit" : ""}${attackVisible && index === 1 ? " attacker" : ""}`} key={`${roles[index]}-${node}`}><strong>{node}</strong><small>{roles[index]}</small></div>).flatMap((node, index) => index < path.length - 1 ? [node, <ArrowRight className="demo-flow-arrow" size={17} key={`arrow-${index}`} />] : [node])}
+      </div>
+      <div className="demo-packet-note"><span>{attackVisible ? "SIMULATED CHANGE" : attackBlocked ? "DEFENSE RESULT" : "NORMAL STATE"}</span><code>{attackVisible || attackBlocked ? scenario.indicator : "No attack scenario is active"}</code></div>
+      <div className="demo-defense-note"><ShieldCheck size={14} /><span><strong>Defense:</strong> {scenario.defense}</span></div>
+    </section>
+  );
+}
+
+export default function AttackSimulation({ mode }: { mode: "network" | "dos" | "dns" | "wireless" }) {
+  if (mode === "network") return <NetworkAttackDemo />;
+  if (mode === "dos") return <ServiceLoadDemo />;
+  if (mode === "dns") return <AttackWalkthroughDemo title="DNS attack simulator" titleId="dns-demo-title" scenarios={dnsScenarios} />;
+  return <AttackWalkthroughDemo title="Wireless attack simulator" titleId="wireless-demo-title" scenarios={wirelessScenarios} />;
 }
