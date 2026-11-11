@@ -1,15 +1,16 @@
 import Link from "next/link";
+import { Fragment } from "react";
 import { AlertTriangle, ArrowRight, BookOpen, Calculator, ChevronRight, Layers3, Network, Waypoints } from "lucide-react";
 import AttackSimulation from "./attack-simulations";
 
 const categories = [
-  { id: "01", title: "Category 1", status: "pending" },
+  { id: "01", title: "Application-layer attacks", status: "ready" },
   { id: "02", title: "Network-layer attacks", status: "ready" },
   { id: "03", title: "Denial-of-Service attacks", status: "ready" },
   { id: "04", title: "DNS attacks", status: "ready" },
   { id: "05", title: "Wireless network attacks", status: "ready" },
-  { id: "06", title: "Category 6", status: "pending" },
-  { id: "07", title: "Category 7", status: "pending" },
+  { id: "06", title: "Transport-layer attacks", status: "ready" },
+  { id: "07", title: "Routing and switching attacks", status: "ready" },
 ];
 
 const networkAttacks = [
@@ -43,6 +44,8 @@ const dnsAttacks = [
   { name: "DNS Hijacking", how: "Changes a device or network's DNS settings to redirect lookups.", prevention: "Secure router administration with MFA and monitor DNS settings." },
   { name: "DNS Tunnelling", how: "Encodes data in DNS queries and responses to evade normal network controls.", prevention: "Inspect DNS traffic, detect anomalies, and apply restrictive DNS policies." },
   { name: "DNS Amplification", how: "Abuses open resolvers to send amplified responses toward a target.", prevention: "Disable open recursion and apply response rate limiting." },
+  { name: "DNS Flood", how: "Sends excessive queries to overwhelm DNS infrastructure.", prevention: "Rate limiting, redundant DNS servers, and DDoS mitigation." },
+  { name: "NXDOMAIN Attack", how: "Floods a DNS server with requests for nonexistent domain names.", prevention: "Query rate limiting, caching, and anomaly detection." },
 ];
 
 const wirelessAttacks = [
@@ -51,7 +54,60 @@ const wirelessAttacks = [
   { name: "Wi-Fi Password Cracking", how: "Attempts to guess or recover a wireless network's password, especially when it is weak.", prevention: "Use strong passwords and WPA3, and disable WPS." },
   { name: "Rogue Access Point", how: "An unauthorized access point is connected to or operated near a protected network.", prevention: "Wireless IDS/IPS and access-point monitoring." },
   { name: "Packet Sniffing", how: "Captures wireless traffic that may be exposed on an untrusted or inadequately protected network.", prevention: "Use WPA2/WPA3 encryption and TLS for application traffic." },
+  { name: "KRACK", how: "Targets weaknesses in vulnerable WPA2 handshake implementations.", prevention: "Install updates for devices and patched Wi-Fi implementations." },
+  { name: "Wireless Jamming", how: "Interferes with radio frequencies to disrupt wireless communication.", prevention: "Spectrum monitoring, channel planning, and network redundancy." },
+  { name: "Wardriving", how: "Searches for nearby wireless networks to assess their security.", prevention: "Use strong encryption and secure access-point configuration." },
 ];
+
+const additionalCategories = [
+  {
+    id: "01",
+    title: "Application-layer attacks",
+    description: "Attacks against applications and services, especially HTTP-based systems.",
+    attacks: [
+      { name: "SQL Injection", how: "Adds unintended input to database queries.", prevention: "Parameterized queries and input validation." },
+      { name: "Cross-Site Scripting (XSS)", how: "Injects script content into pages viewed by other users.", prevention: "Output encoding, sanitization, and Content Security Policy." },
+      { name: "Cross-Site Request Forgery (CSRF)", how: "Tricks a logged-in user's browser into making an unintended request.", prevention: "CSRF tokens and SameSite cookies." },
+      { name: "Server-Side Request Forgery (SSRF)", how: "Tricks a server into making unintended network requests.", prevention: "Destination allowlists and network egress controls." },
+      { name: "HTTP Request Smuggling", how: "Exploits differences in how HTTP components parse request boundaries.", prevention: "Consistent HTTP parsing and patched proxies and servers." },
+    ],
+  },
+  {
+    id: "06",
+    title: "Transport-layer attacks",
+    description: "Attacks that exploit TCP, UDP, and transport connection or session handling.",
+    attacks: [
+      { name: "TCP SYN Flood", how: "Creates many incomplete TCP connection requests that consume pending connection resources.", prevention: "SYN cookies, connection limits, and firewall rules." },
+      { name: "TCP Session Hijacking", how: "Attempts to take over an established TCP session.", prevention: "TLS, secure session management, and unpredictable sequence numbers." },
+      { name: "TCP Reset Attack", how: "Injects forged TCP reset packets to terminate a connection.", prevention: "TCP authentication and protected connections." },
+      { name: "TCP Sequence Prediction", how: "Attempts to predict sequence numbers to inject data into a connection.", prevention: "Modern TCP implementations, randomized initial sequence numbers, and TLS." },
+      { name: "UDP Flood", how: "Overwhelms a target with UDP traffic.", prevention: "Firewall filtering and rate limiting." },
+    ],
+  },
+  {
+    id: "07",
+    title: "Routing and switching attacks",
+    description: "Attacks that target routing protocols, switches, and network segmentation.",
+    attacks: [
+      { name: "BGP Hijacking", how: "Announces unauthorized IP prefixes to divert internet traffic.", prevention: "RPKI, route-origin validation, and prefix filtering." },
+      { name: "BGP Route Leak", how: "Improperly propagates routes to other networks.", prevention: "Routing policies, route filtering, and monitoring." },
+      { name: "RIP Poisoning", how: "Manipulates routing updates to disrupt route selection.", prevention: "Authentication, route filtering, and secure configuration." },
+      { name: "OSPF Attacks", how: "Attempts to inject or manipulate routing information.", prevention: "OSPF authentication, trusted adjacencies, and filtering." },
+      { name: "VLAN Hopping", how: "Attempts to reach traffic in another VLAN by exploiting switch-port misconfiguration.", prevention: "Disable unused trunking, configure native VLANs explicitly, and harden switches." },
+    ],
+  },
+];
+
+function AttackCategorySection({ category }: { category: (typeof additionalCategories)[number] }) {
+  return (
+    <section className="attack-category" id={`category-${category.id}`} aria-labelledby={`category-${category.id}-title`}>
+      <div className="attack-category-heading"><div><div className="section-kicker">CATEGORY {category.id}</div><h2 id={`category-${category.id}-title`}>{category.title}</h2><p>{category.description}</p></div><span className="attack-count">{category.attacks.length} ATTACKS</span></div>
+      <div className="attack-list" role="list" aria-label={category.title}>
+        {category.attacks.map((attack) => <article className="attack-row" role="listitem" key={attack.name}><h3>{attack.name}</h3><div className="attack-cell"><span>HOW IT WORKS</span><p>{attack.how}</p></div><div className="attack-cell"><span>PREVENTION</span><p>{attack.prevention}</p></div></article>)}
+      </div>
+    </section>
+  );
+}
 
 export default function LearnPage() {
   return (
@@ -67,12 +123,15 @@ export default function LearnPage() {
         <header className="topbar"><div className="breadcrumbs"><Link href="/">Workspace</Link><ChevronRight size={14} /><strong>Learn</strong></div><div className="topbar-right"><span className="environment-pill"><span className="status-dot" />Attack library</span></div></header>
         <div className="page-content learn-content">
           <div className="eyebrow"><span className="eyebrow-line" />NETWORK SECURITY / ATTACKS & DEFENSES</div>
-          <section className="learn-intro attack-intro"><div><h1 className="learn-title">Know the attack.<br /><span>Understand the defense.</span></h1><p className="welcome-copy">Explore how common network attacks work, what they put at risk, and the controls that help prevent them.</p></div><div className="learn-count"><span>04 / 07</span><small>CATEGORIES DETAILED</small></div></section>
+          <section className="learn-intro attack-intro"><div><h1 className="learn-title">Know the attack.<br /><span>Understand the defense.</span></h1><p className="welcome-copy">Explore how common network attacks work, what they put at risk, and the controls that help prevent them.</p></div><div className="learn-count"><span>07 / 07</span><small>ATTACK CATEGORIES DETAILED</small></div></section>
 
           <section className="attack-category-index" id="categories" aria-labelledby="category-index-title">
-            <div className="section-heading"><div><div className="section-kicker">ATTACK LIBRARY</div><h2 id="category-index-title">Seven categories</h2></div><span className="lab-guide-note">Four categories detailed</span></div>
+            <div className="section-heading"><div><div className="section-kicker">ATTACK LIBRARY</div><h2 id="category-index-title">Seven attack categories</h2></div><span className="lab-guide-note">Seven categories detailed</span></div>
             <div className="category-index-grid">{categories.map((category) => category.status === "ready" ? <a className="category-index-item ready" href={`#category-${category.id}`} key={category.id}><span className="category-index-number">{category.id}</span><span className="category-index-title">{category.title}</span><ArrowRight size={14} /></a> : <div className="category-index-item pending" key={category.id}><span className="category-index-number">{category.id}</span><span className="category-index-title">{category.title}</span><small>CONTENT PENDING</small></div>)}</div>
           </section>
+
+          <AttackCategorySection category={additionalCategories[0]} />
+          <AttackSimulation mode="application" />
 
           <section className="attack-category" id="category-02" aria-labelledby="network-attacks-title">
             <div className="attack-category-heading"><div><div className="section-kicker">CATEGORY 02</div><h2 id="network-attacks-title">Network-layer attacks</h2><p>Attacks that target communication between devices, routers, and networks.</p></div><span className="attack-count">10 ATTACKS</span></div>
@@ -95,7 +154,7 @@ export default function LearnPage() {
           </section>
 
           <section className="attack-category" id="category-04" aria-labelledby="dns-attacks-title">
-            <div className="attack-category-heading"><div><div className="section-kicker">CATEGORY 04</div><h2 id="dns-attacks-title">DNS attacks</h2><p>Attacks that exploit name resolution to redirect users, hide activity, or disrupt DNS availability.</p></div><span className="attack-count">5 ATTACKS</span></div>
+            <div className="attack-category-heading"><div><div className="section-kicker">CATEGORY 04</div><h2 id="dns-attacks-title">DNS attacks</h2><p>Attacks that exploit name resolution to redirect users, hide activity, or disrupt DNS availability.</p></div><span className="attack-count">{dnsAttacks.length} ATTACKS</span></div>
             <div className="attack-list" role="list" aria-label="DNS attacks">{dnsAttacks.map((attack) => <article className="attack-row" role="listitem" key={attack.name}><h3>{attack.name}</h3><div className="attack-cell"><span>HOW IT WORKS</span><p>{attack.how}</p></div><div className="attack-cell"><span>PREVENTION</span><p>{attack.prevention}</p></div></article>)}</div>
             <AttackSimulation mode="dns" />
             <div className="important-attacks"><div className="section-heading"><div><div className="section-kicker">IMPORTANT ATTACK TO UNDERSTAND</div><h3>When a DNS answer cannot be trusted</h3></div></div>
@@ -106,7 +165,7 @@ export default function LearnPage() {
           </section>
 
           <section className="attack-category" id="category-05" aria-labelledby="wireless-attacks-title">
-            <div className="attack-category-heading"><div><div className="section-kicker">CATEGORY 05</div><h2 id="wireless-attacks-title">Wireless network attacks</h2><p>Attacks that target Wi-Fi access points, radio communication, and wireless clients.</p></div><span className="attack-count">5 ATTACKS</span></div>
+            <div className="attack-category-heading"><div><div className="section-kicker">CATEGORY 05</div><h2 id="wireless-attacks-title">Wireless network attacks</h2><p>Attacks that target Wi-Fi access points, radio communication, and wireless clients.</p></div><span className="attack-count">{wirelessAttacks.length} ATTACKS</span></div>
             <div className="attack-list" role="list" aria-label="Wireless network attacks">{wirelessAttacks.map((attack) => <article className="attack-row" role="listitem" key={attack.name}><h3>{attack.name}</h3><div className="attack-cell"><span>HOW IT WORKS</span><p>{attack.how}</p></div><div className="attack-cell"><span>PREVENTION</span><p>{attack.prevention}</p></div></article>)}</div>
             <AttackSimulation mode="wireless" />
             <div className="important-attacks"><div className="section-heading"><div><div className="section-kicker">IMPORTANT ATTACK TO UNDERSTAND</div><h3>Check the access point before connecting</h3></div></div>
@@ -116,7 +175,15 @@ export default function LearnPage() {
             </div>
           </section>
 
-          <footer className="learn-footer"><span>Attack categories 1, 6, and 7 are ready for their content.</span><Link href="/">Back to overview <ArrowRight size={14} /></Link></footer>
+          {additionalCategories.slice(1).map((category) => (
+            <Fragment key={category.id}>
+              <AttackCategorySection category={category} />
+              {category.id === "06" && <AttackSimulation mode="transport" />}
+              {category.id === "07" && <AttackSimulation mode="routing" />}
+            </Fragment>
+          ))}
+
+          <footer className="learn-footer"><span>All seven attack categories are detailed.</span><Link href="/">Back to overview <ArrowRight size={14} /></Link></footer>
         </div>
       </main>
     </div>
