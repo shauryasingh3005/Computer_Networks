@@ -21,13 +21,12 @@ export default function SubnetPage() {
   return (
     <div className="app-shell">
       <aside className="sidebar">
-        <Link className="brand" href="/" aria-label="NetLab home"><span className="brand-mark"><Network size={19} strokeWidth={2.2} /></span><span>netlab<span className="brand-period">.</span></span></Link>
         <div className="sidebar-label">Workspace</div>
         <nav className="side-nav" aria-label="Main navigation"><Link className="nav-link" href="/"><Network size={17} /><span>Overview</span></Link><Link className="nav-link" href="/learn"><ArrowRight size={17} /><span>Learn</span></Link><Link className="nav-link" href="/builder"><Network size={17} /><span>Network builder</span></Link><Link className="nav-link" href="/builder#simulation"><ArrowUpRight size={17} /><span>Simulations</span></Link></nav>
         <div className="sidebar-label sidebar-label-spaced">Reference</div>
         <Link className="nav-link active" href="/subnet"><Calculator size={17} /><span>Subnet calculator</span></Link>
         <Link className="nav-link" href="/learn#glossary"><ArrowRight size={17} /><span>Protocol glossary</span></Link>
-        <div className="sidebar-bottom"><div className="sidebar-status"><span className="status-dot" />Local workspace</div><div className="sidebar-version">NETLAB / 0.1.0</div></div>
+        <div className="sidebar-bottom"><div className="sidebar-status"><span className="status-dot" />Threat lab online</div></div>
       </aside>
       <main className="main-area">
         <header className="topbar"><div className="breadcrumbs"><Link href="/">Workspace</Link><ChevronRight size={14} /><strong>Subnet calculator</strong></div><div className="topbar-right"><span className="environment-pill"><span className="status-dot" />IPv4 tool</span></div></header>

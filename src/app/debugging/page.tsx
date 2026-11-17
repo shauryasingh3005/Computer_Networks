@@ -39,10 +39,9 @@ export default function DebuggingPage() {
   return (
     <div className="app-shell">
       <aside className="sidebar">
-        <Link className="brand" href="/" aria-label="NetLab home"><span className="brand-mark"><Network size={19} /></span><span>netlab<span className="brand-period">.</span></span></Link>
         <div className="sidebar-label">Workspace</div>
-        <nav className="side-nav" aria-label="Main navigation"><Link className="nav-link" href="/"><Network size={17} /><span>Overview</span></Link><Link className="nav-link" href="/learn"><Waypoints size={17} /><span>Learn</span></Link><Link className="nav-link" href="/builder"><Network size={17} /><span>Network builder</span></Link><Link className="nav-link" href="/builder#simulation"><ArrowRight size={17} /><span>Simulations</span></Link><Link className="nav-link active" href="/debugging"><AlertTriangle size={17} /><span>Troubleshoot</span></Link></nav>
-        <div className="sidebar-bottom"><div className="sidebar-status"><span className="status-dot" />Local workspace</div><div className="sidebar-version">NETLAB / 0.1.0</div></div>
+        <nav className="side-nav" aria-label="Main navigation"><Link className="nav-link" href="/"><Network size={17} /><span>Overview</span></Link><Link className="nav-link" href="/learn"><Waypoints size={17} /><span>Learn</span></Link><Link className="nav-link" href="/builder"><Network size={17} /><span>Network builder</span></Link><Link className="nav-link" href="/builder#simulation"><ArrowRight size={17} /><span>Simulations</span></Link><Link className="nav-link active" href="/debugging"><AlertTriangle size={17} /><span>Defense drills</span></Link></nav>
+        <div className="sidebar-bottom"><div className="sidebar-status"><span className="status-dot" />Threat lab online</div></div>
       </aside>
       <main className="main-area">
         <header className="topbar"><div className="breadcrumbs"><Link href="/">Workspace</Link><ChevronRight size={14} /><strong>Troubleshoot</strong></div><div className="topbar-right"><span className="environment-pill"><span className="status-dot" />Challenge 01</span></div></header>

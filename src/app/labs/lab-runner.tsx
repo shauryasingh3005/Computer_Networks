@@ -86,10 +86,9 @@ export default function LabRunner({ labId }: { labId: string }) {
   return (
     <div className="app-shell lab-app-shell">
       <aside className="sidebar">
-        <Link className="brand" href="/" aria-label="NetLab home"><span className="brand-mark"><Network size={19} /></span><span>netlab<span className="brand-period">.</span></span></Link>
         <div className="sidebar-label">Guided labs</div>
         <nav className="side-nav" aria-label="Guided lab navigation">{labList.map(({ id, title, icon: Icon }) => <Link className={`nav-link${id === labId ? " active" : ""}`} href={`/labs/${id}`} key={id}><Icon size={16} /><span>{title}</span></Link>)}</nav>
-        <div className="sidebar-bottom"><div className="sidebar-status"><span className="status-dot" />Lab workspace</div><div className="sidebar-version">LAB {labId.padStart(2, "0")} / 04</div></div>
+        <div className="sidebar-bottom"><div className="sidebar-status"><span className="status-dot" />Threat lab online</div></div>
       </aside>
       <main className="main-area">
         <header className="topbar"><div className="breadcrumbs"><Link href="/learn#labs">Learn</Link><ChevronRight size={14} /><strong>Lab {labId}</strong></div><div className="topbar-right"><span className="environment-pill"><span className="status-dot" />Interactive lab</span></div></header>
@@ -139,7 +138,7 @@ export default function LabRunner({ labId }: { labId: string }) {
 
             <aside className="lab-side-panel"><div className="section-kicker">LAB NOTES</div><h2>Before you begin</h2><ul><li>All activity is local and deterministic.</li><li>Simulation values use the configured link delays, not real network measurements.</li><li>Your work resets when this page is refreshed.</li></ul><div className="lab-side-divider" /><span className="section-kicker">RELATED TOPIC</span><Link href={`/learn#module-${labId === "1" ? "05" : labId === "2" || labId === "3" ? "04" : "03"}`}>{labId === "1" ? "Ethernet and ARP" : labId === "2" ? "IPv4 and subnetting" : labId === "3" ? "Static routing" : "Transport layer"}<ArrowRight size={14} /></Link><div className="lab-side-divider" /><span className="section-kicker">UP NEXT</span><Link className="next-lab-link" href={`/labs/${labId === "4" ? "1" : String(Number(labId) + 1)}`}>{labId === "4" ? "Restart the first lab" : labList[Number(labId)]?.title}<ArrowRight size={14} /></Link></aside>
           </div>
-          <footer className="learn-footer"><span>NetLab guided lab · Results are simulated, not measured on your network.</span><Link href="/learn#labs">Return to lab list <ArrowRight size={14} /></Link></footer>
+          <footer className="learn-footer"><span>Threat lab guided exercise · Results are simulated, not measured on your network.</span><Link href="/learn#labs">Return to lab list <ArrowRight size={14} /></Link></footer>
         </div>
       </main>
     </div>

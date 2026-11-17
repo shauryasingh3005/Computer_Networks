@@ -113,11 +113,10 @@ export default function LearnPage() {
   return (
     <div className="app-shell">
       <aside className="sidebar">
-        <Link className="brand" href="/" aria-label="NetLab home"><span className="brand-mark"><Network size={19} strokeWidth={2.2} /></span><span>netlab<span className="brand-period">.</span></span></Link>
         <div className="sidebar-label">Workspace</div>
-        <nav className="side-nav" aria-label="Main navigation"><Link className="nav-link" href="/"><Layers3 size={17} strokeWidth={1.8} /><span>Overview</span></Link><Link className="nav-link active" href="/learn"><BookOpen size={17} strokeWidth={1.8} /><span>Learn</span></Link><Link className="nav-link" href="/builder"><Network size={17} strokeWidth={1.8} /><span>Network builder</span></Link><Link className="nav-link" href="/builder#simulation"><Waypoints size={17} strokeWidth={1.8} /><span>Simulations</span></Link><Link className="nav-link" href="/debugging"><AlertTriangle size={17} /><span>Troubleshoot</span></Link><Link className="nav-link" href="#categories"><Layers3 size={17} strokeWidth={1.8} /><span>Attack categories</span></Link></nav>
+        <nav className="side-nav" aria-label="Main navigation"><Link className="nav-link" href="/"><Layers3 size={17} strokeWidth={1.8} /><span>Overview</span></Link><Link className="nav-link active" href="/learn"><BookOpen size={17} strokeWidth={1.8} /><span>Learn</span></Link><Link className="nav-link" href="/builder"><Network size={17} strokeWidth={1.8} /><span>Network builder</span></Link><Link className="nav-link" href="/builder#simulation"><Waypoints size={17} strokeWidth={1.8} /><span>Simulations</span></Link><Link className="nav-link" href="/debugging"><AlertTriangle size={17} /><span>Defense drills</span></Link><Link className="nav-link" href="#categories"><Layers3 size={17} strokeWidth={1.8} /><span>Attack categories</span></Link></nav>
         <Link className="nav-link reference-nav" href="/subnet"><Calculator size={17} /><span>Subnet calculator</span></Link>
-        <div className="sidebar-bottom"><div className="sidebar-status"><span className="status-dot" />Local workspace</div><div className="sidebar-version">NETLAB / 0.1.0</div></div>
+        <div className="sidebar-bottom"><div className="sidebar-status"><span className="status-dot" />Threat lab online</div></div>
       </aside>
       <main className="main-area">
         <header className="topbar"><div className="breadcrumbs"><Link href="/">Workspace</Link><ChevronRight size={14} /><strong>Learn</strong></div><div className="topbar-right"><span className="environment-pill"><span className="status-dot" />Attack library</span></div></header>

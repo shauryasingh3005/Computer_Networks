@@ -13,9 +13,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "NetLab | Build. Simulate. Debug.",
+  title: "Threat Lab | Attack Simulation & Defense",
   description:
-    "An interactive computer networks learning and simulation laboratory.",
+    "An interactive cyber defense and attack simulation laboratory for learning security concepts.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

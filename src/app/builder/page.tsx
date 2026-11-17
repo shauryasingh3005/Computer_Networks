@@ -181,8 +181,8 @@ export default function BuilderPage() {
   return (
     <div className="builder-shell">
       <header className="builder-topbar">
-        <Link className="builder-back" href="/"><ArrowLeft size={16} /><span>NetLab</span></Link>
-        <div className="builder-title"><strong>Network builder</strong><span>Untitled topology</span></div>
+        <Link className="builder-back" href="/"><ArrowLeft size={16} /><span>Home</span></Link>
+        <div className="builder-title"><strong>Security lab</strong><span>Untitled topology</span></div>
         <div className="builder-top-status"><span className="status-dot" />LOCAL SIMULATION</div>
       </header>
 
