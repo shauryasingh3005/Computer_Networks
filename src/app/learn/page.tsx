@@ -109,8 +109,9 @@ export default function LearnPage() {
     <div className="app-shell">
       <aside className="sidebar">
         <div className="sidebar-label">Workspace</div>
-        <nav className="side-nav" aria-label="Main navigation"><Link className="nav-link" href="/"><Layers3 size={17} strokeWidth={1.8} /><span>Overview</span></Link><Link className="nav-link active" href="/learn"><BookOpen size={17} strokeWidth={1.8} /><span>Learn</span></Link><Link className="nav-link" href="/builder"><Network size={17} strokeWidth={1.8} /><span>Network builder</span></Link><Link className="nav-link" href="/builder#simulation"><Waypoints size={17} strokeWidth={1.8} /><span>Simulations</span></Link><Link className="nav-link" href="/debugging"><AlertTriangle size={17} /><span>Defense drills</span></Link><Link className="nav-link" href="#categories"><Layers3 size={17} strokeWidth={1.8} /><span>Attack categories</span></Link></nav>
-        <Link className="nav-link reference-nav" href="/subnet"><Calculator size={17} /><span>Subnet calculator</span></Link>
+        <nav className="side-nav" aria-label="Main navigation"><Link className="nav-link" href="/"><Layers3 size={17} strokeWidth={1.8} /><span>Overview</span></Link><Link className="nav-link active" href="/learn"><BookOpen size={17} strokeWidth={1.8} /><span>Learn</span></Link>
+        <Link className="nav-link" href="/builder"><Network size={17} strokeWidth={1.8} /><span>Network builder</span></Link></nav>
+      
         <div className="sidebar-bottom"><div className="sidebar-status"><span className="status-dot" />Threat lab online</div></div>
       </aside>
       <main className="main-area">
