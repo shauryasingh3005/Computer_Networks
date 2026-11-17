@@ -42,21 +42,16 @@ const dnsAttacks = [
   { name: "DNS Spoofing", how: "Returns false DNS data to misdirect a domain lookup.", prevention: "Validate DNSSEC signatures and use trusted resolvers." },
   { name: "DNS Cache Poisoning", how: "Adds malicious records to a resolver cache so later lookups return an incorrect address.", prevention: "Enable DNSSEC validation and secure resolver configuration." },
   { name: "DNS Hijacking", how: "Changes a device or network's DNS settings to redirect lookups.", prevention: "Secure router administration with MFA and monitor DNS settings." },
-  { name: "DNS Tunnelling", how: "Encodes data in DNS queries and responses to evade normal network controls.", prevention: "Inspect DNS traffic, detect anomalies, and apply restrictive DNS policies." },
+  { name: "DNS tunnelling", how: "Encodes data in DNS queries and responses to evade normal network controls.", prevention: "Inspect DNS traffic, detect anomalies, and apply restrictive DNS policies." },
   { name: "DNS Amplification", how: "Abuses open resolvers to send amplified responses toward a target.", prevention: "Disable open recursion and apply response rate limiting." },
-  { name: "DNS Flood", how: "Sends excessive queries to overwhelm DNS infrastructure.", prevention: "Rate limiting, redundant DNS servers, and DDoS mitigation." },
-  { name: "NXDOMAIN Attack", how: "Floods a DNS server with requests for nonexistent domain names.", prevention: "Query rate limiting, caching, and anomaly detection." },
 ];
 
 const wirelessAttacks = [
-  { name: "Evil Twin Attack", how: "A fake Wi-Fi access point imitates a trusted network to lure users into connecting.", prevention: "WPA3-Enterprise, certificate validation, and trusted access points." },
-  { name: "Deauthentication Attack", how: "Forged management frames attempt to disconnect wireless clients.", prevention: "Protected Management Frames (802.11w) and WPA3." },
+  { name: "Evil Twin", how: "A fake Wi-Fi access point imitates a trusted network to lure users into connecting.", prevention: "WPA3-Enterprise, certificate validation, and trusted access points." },
+  { name: "Deauthentication", how: "Forged management frames attempt to disconnect wireless clients.", prevention: "Protected Management Frames (802.11w) and WPA3." },
   { name: "Wi-Fi Password Cracking", how: "Attempts to guess or recover a wireless network's password, especially when it is weak.", prevention: "Use strong passwords and WPA3, and disable WPS." },
-  { name: "Rogue Access Point", how: "An unauthorized access point is connected to or operated near a protected network.", prevention: "Wireless IDS/IPS and access-point monitoring." },
-  { name: "Packet Sniffing", how: "Captures wireless traffic that may be exposed on an untrusted or inadequately protected network.", prevention: "Use WPA2/WPA3 encryption and TLS for application traffic." },
-  { name: "KRACK", how: "Targets weaknesses in vulnerable WPA2 handshake implementations.", prevention: "Install updates for devices and patched Wi-Fi implementations." },
-  { name: "Wireless Jamming", how: "Interferes with radio frequencies to disrupt wireless communication.", prevention: "Spectrum monitoring, channel planning, and network redundancy." },
-  { name: "Wardriving", how: "Searches for nearby wireless networks to assess their security.", prevention: "Use strong encryption and secure access-point configuration." },
+  { name: "Rogue access point", how: "An unauthorized access point is connected to or operated near a protected network.", prevention: "Wireless IDS/IPS and access-point monitoring." },
+  { name: "Wireless packet sniffing", how: "Captures wireless traffic that may be exposed on an untrusted or inadequately protected network.", prevention: "Use WPA2/WPA3 encryption and TLS for application traffic." },
 ];
 
 const additionalCategories = [
