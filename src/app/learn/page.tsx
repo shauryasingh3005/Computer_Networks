@@ -14,16 +14,12 @@ const categories = [
 ];
 
 const networkAttacks = [
-  { name: "IP Spoofing", how: "Forges a packet's source IP address so it appears to come from another machine.", prevention: "Ingress and egress filtering, ACLs, and anti-spoofing rules." },
-  { name: "ARP Spoofing / Poisoning", how: "Sends false ARP responses to associate the attacker's MAC address with another device's IP.", prevention: "Dynamic ARP Inspection, DHCP snooping, and static ARP for special cases." },
+  { name: "IP Spoofing", how: "Uses a fake source IP address to impersonate another device.", prevention: "Ingress and egress filtering, ACLs, and anti-spoofing rules." },
+  { name: "ARP Spoofing", how: "Sends false ARP information to redirect network traffic.", prevention: "Dynamic ARP Inspection, DHCP snooping, and static ARP for special cases." },
   { name: "MAC Flooding", how: "Overloads a switch's MAC address table with many source addresses.", prevention: "Port security and MAC address limits." },
-  { name: "MAC Spoofing", how: "Changes a device's MAC address to impersonate another device.", prevention: "802.1X authentication and network access control." },
-  { name: "ICMP Flood", how: "Overwhelms a target with a high volume of ICMP packets.", prevention: "Rate limiting, filtering, and DDoS protection." },
-  { name: "IP Fragmentation Attack", how: "Uses malformed or overlapping fragments to target packet reassembly.", prevention: "Fragment validation, current firewalls, and OS patches." },
-  { name: "Packet Sniffing", how: "Captures network traffic in an attempt to extract sensitive information.", prevention: "Encrypt traffic with TLS, SSH, WPA3, and other secure protocols." },
-  { name: "Packet Injection", how: "Inserts packets into a communication stream.", prevention: "Authentication, encryption, and sequence validation." },
-  { name: "Routing Table Poisoning", how: "Manipulates routing information to divert traffic.", prevention: "Route authentication, filtering, and secure routing configuration." },
-  { name: "Man-in-the-Middle (MITM)", how: "Intercepts communication between two parties, potentially allowing traffic to be read or changed.", prevention: "TLS, certificate validation, and mutual authentication." },
+  { name: "ICMP Flood", how: "Overwhelms a target with excessive ICMP packets.", prevention: "Rate limiting, filtering, and DDoS protection." },
+  { name: "Packet Sniffing", how: "Captures network traffic to obtain sensitive information.", prevention: "Encrypt traffic with TLS, SSH, WPA3, and other secure protocols." },
+  { name: "Man-in-the-Middle (MITM)", how: "Intercepts communication between two devices.", prevention: "TLS, certificate validation, and mutual authentication." },
 ];
 
 const dosAttacks = [
@@ -123,7 +119,7 @@ export default function LearnPage() {
           <AttackSimulation mode="application" />
 
           <section className="attack-category" id="category-02" aria-labelledby="network-attacks-title">
-            <div className="attack-category-heading"><div><div className="section-kicker">CATEGORY 02</div><h2 id="network-attacks-title">Network-layer attacks</h2><p>Attacks that target communication between devices, routers, and networks.</p></div><span className="attack-count">10 ATTACKS</span></div>
+            <div className="attack-category-heading"><div><div className="section-kicker">CATEGORY 02</div><h2 id="network-attacks-title">Network-layer attacks</h2><p>Attacks that target communication between devices, routers, and networks.</p></div><span className="attack-count">{networkAttacks.length} ATTACKS</span></div>
             <div className="attack-list" role="list" aria-label="Network-layer attacks">{networkAttacks.map((attack) => <article className="attack-row" role="listitem" key={attack.name}><h3>{attack.name}</h3><div className="attack-cell"><span>HOW IT WORKS</span><p>{attack.how}</p></div><div className="attack-cell"><span>PREVENTION</span><p>{attack.prevention}</p></div></article>)}</div>
             <AttackSimulation mode="network" />
             <div className="important-attacks"><div className="section-heading"><div><div className="section-kicker">IMPORTANT ATTACKS TO UNDERSTAND</div><h3>When local traffic is no longer private</h3></div></div>
