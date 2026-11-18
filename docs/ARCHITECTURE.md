@@ -51,8 +51,9 @@ The simplified TCP setup uses the same active Layer 2 path and emits SYN, SYN-AC
 - `/subnet` uses the engine's pure `calculateSubnet` utility.
 - `/debugging` constructs a deterministic broken topology and validates the student's edited address with the same `NetworkSimulator`.
 - `/labs/[labId]` serves four interactive activities using the engine or tested pure utilities. Lab state is local to the page and resets on refresh.
+- `/incidents` is a separate, local NOC and incident-response exercise. Six fictional environments and their incident packs reuse `SimTopology`; a deterministic scenario model derives traffic, queue, availability, latency, loss, resource, alert, and recovery metrics from the current phase and intensity. The UI provides animated local packet flows, inspection, hints, defensive controls, and an after-action report. It does not send network traffic or persist scenario state.
 - `/learn` is a syllabus outline with launch links; it is not a complete set of lesson pages.
 
 ## Tests
 
-Vitest tests the queue, subnet utilities, ARP cache reuse, same-subnet ping, single- and multi-router ICMP forwarding, static routes, missing gateways and return routes, link failures, TTL expiry, TCP handshake events, and longest-prefix lookup. Tests are intentionally focused on current behavior; they do not imply support for protocols that are not implemented.
+Vitest tests the queue, subnet utilities, ARP cache reuse, same-subnet ping, single- and multi-router ICMP forwarding, static routes, missing gateways and return routes, link failures, TTL expiry, TCP handshake events, longest-prefix lookup, and incident progression through attack, impact, defense, recovery, and reporting across all scenario packs. Tests are intentionally focused on current behavior; they do not imply support for protocols that are not implemented.

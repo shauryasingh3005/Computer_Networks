@@ -5,7 +5,7 @@ import {
   addEdge, Background, Controls, Handle, MiniMap, Position, ReactFlow,
   useEdgesState, useNodesState, type Connection, type Edge, type Node, type NodeProps,
 } from "@xyflow/react";
-import { Activity, ArrowLeft, Cable, CircleAlert, CircleCheck, Cpu, Network, Play, Plus, Router, Server, StepForward, Trash2, X } from "lucide-react";
+import { Activity, ArrowLeft, Cable, CircleAlert, CircleCheck, Cpu, Network, Play, Plus, Router, Server, ShieldAlert, StepForward, Trash2, X } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { calculateSubnet, NetworkSimulator } from "@/simulation/engine";
@@ -257,6 +257,7 @@ export default function BuilderPage() {
         <Link className="builder-back" href="/"><ArrowLeft size={16} /><span>Home</span></Link>
         <div className="builder-title"><strong>Security lab</strong><span>Untitled topology</span></div>
         <div className="builder-top-status"><span className="status-dot" />LOCAL SIMULATION</div>
+        <Link className="builder-back" href="/incidents"><ShieldAlert size={15} /><span>Incident Lab</span></Link>
       </header>
 
       <div className="builder-workspace">

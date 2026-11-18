@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Activity, ArrowRight, BookOpen, ChevronRight, Cpu, Network, Router, Server } from "lucide-react";
+import { Activity, ArrowRight, BookOpen, ChevronRight, Cpu, Network, Router, Server, ShieldAlert } from "lucide-react";
 
 export default function Home() {
   return (
@@ -10,6 +10,7 @@ export default function Home() {
           <Link href="/" className="nav-link active"><Activity size={17} strokeWidth={1.8} /><span>Overview</span></Link>
           <Link href="/learn" className="nav-link"><BookOpen size={17} strokeWidth={1.8} /><span>Learn</span></Link>
           <Link href="/builder" className="nav-link"><Network size={17} strokeWidth={1.8} /><span>Network builder</span></Link>
+          <Link href="/incidents" className="nav-link"><ShieldAlert size={17} strokeWidth={1.8} /><span>Real-World Scenarios</span></Link>
         </nav>
         <div className="sidebar-bottom"><div className="sidebar-status"><span className="status-dot" />Threat lab online</div></div>
       </aside>

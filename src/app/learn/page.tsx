@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Fragment } from "react";
-import { AlertTriangle, ArrowRight, BookOpen, Calculator, ChevronRight, Layers3, Network, Waypoints } from "lucide-react";
+import { AlertTriangle, ArrowRight, BookOpen, Calculator, ChevronRight, Layers3, Network, ShieldAlert, Waypoints } from "lucide-react";
 import AttackSimulation from "./attack-simulations";
 
 const categories = [
@@ -100,7 +100,7 @@ export default function LearnPage() {
       <aside className="sidebar">
         <div className="sidebar-label">Workspace</div>
         <nav className="side-nav" aria-label="Main navigation"><Link className="nav-link" href="/"><Layers3 size={17} strokeWidth={1.8} /><span>Overview</span></Link><Link className="nav-link active" href="/learn"><BookOpen size={17} strokeWidth={1.8} /><span>Learn</span></Link>
-        <Link className="nav-link" href="/builder"><Network size={17} strokeWidth={1.8} /><span>Network builder</span></Link></nav>
+        <Link className="nav-link" href="/builder"><Network size={17} strokeWidth={1.8} /><span>Network builder</span></Link><Link className="nav-link" href="/incidents"><ShieldAlert size={17} strokeWidth={1.8} /><span>Real-World Scenarios</span></Link></nav>
       
         <div className="sidebar-bottom"><div className="sidebar-status"><span className="status-dot" />Threat lab online</div></div>
       </aside>
