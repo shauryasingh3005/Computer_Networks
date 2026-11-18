@@ -29,13 +29,7 @@ const networkAttacks = [
 const dosAttacks = [
   { name: "DoS", how: "A single source overwhelms a target service or network.", prevention: "Rate limiting, filtering, and resource limits." },
   { name: "DDoS", how: "Multiple distributed devices overwhelm a target at the same time.", prevention: "DDoS protection, CDNs, and traffic scrubbing." },
-  { name: "SYN Flood", how: "Sends TCP SYN requests without completing the handshake, consuming pending connection resources.", prevention: "SYN cookies, connection management, rate limiting, and upstream filtering." },
-  { name: "UDP Flood", how: "Sends large volumes of UDP packets to consume network or service resources.", prevention: "Rate limiting, filtering, and upstream mitigation." },
-  { name: "HTTP Flood", how: "Overwhelms a web server with application-level requests.", prevention: "WAF, bot detection, caching, and rate limiting." },
-  { name: "Slowloris", how: "Keeps HTTP connections open by sending request data very slowly.", prevention: "Connection timeouts, reverse proxies, and request limits." },
-  { name: "DNS Amplification", how: "Abuses open DNS resolvers to amplify traffic directed at a victim.", prevention: "Restrict recursive DNS, use response rate limiting, and apply anti-spoofing controls." },
-  { name: "Ping of Death", how: "Historically exploited oversized or malformed IP packets.", prevention: "Current OS updates and packet validation." },
-  { name: "Smurf Attack", how: "Abuses ICMP broadcast responses to amplify traffic toward a target.", prevention: "Disable directed broadcasts and use ingress filtering." },
+  { name: "SYN Flood", how: "Incomplete TCP handshakes consume pending connection resources.", prevention: "SYN cookies, connection management, rate limiting, and upstream filtering." },
 ];
 
 const dnsAttacks = [
@@ -142,7 +136,7 @@ export default function LearnPage() {
           </section>
 
           <section className="attack-category" id="category-03" aria-labelledby="dos-attacks-title">
-            <div className="attack-category-heading"><div><div className="section-kicker">CATEGORY 03</div><h2 id="dos-attacks-title">Denial-of-Service attacks</h2><p>The objective is to make a server, network, or service unavailable to legitimate users.</p></div><span className="attack-count">9 ATTACKS</span></div>
+            <div className="attack-category-heading"><div><div className="section-kicker">CATEGORY 03</div><h2 id="dos-attacks-title">Denial-of-Service attacks</h2><p>The objective is to make a server, network, or service unavailable to legitimate users.</p></div><span className="attack-count">{dosAttacks.length} ATTACKS</span></div>
             <div className="attack-list" role="list" aria-label="Denial-of-Service attacks">{dosAttacks.map((attack) => <article className="attack-row" role="listitem" key={attack.name}><h3>{attack.name}</h3><div className="attack-cell"><span>HOW IT WORKS</span><p>{attack.how}</p></div><div className="attack-cell"><span>PREVENTION</span><p>{attack.prevention}</p></div></article>)}</div>
             <AttackSimulation mode="dos" />
             <article className="syn-explainer"><div className="syn-copy"><div className="section-kicker">IMPORTANT ATTACK TO UNDERSTAND</div><h3>Inside a SYN flood</h3><p>TCP normally completes a three-step handshake before a connection is established. In a SYN flood, many requests stop before the final step, leaving pending connection resources occupied.</p><div className="syn-prevention"><strong>DEFENSE</strong><span>SYN cookies, connection management, rate limiting, and upstream filtering.</span></div></div><div className="handshake" aria-label="TCP handshake compared with incomplete SYN flood requests"><div className="handshake-label">NORMAL TCP HANDSHAKE</div><div className="handshake-step"><span>CLIENT</span><b>SYN</b><span>SERVER</span></div><div className="handshake-step"><span>CLIENT</span><b>SYN-ACK</b><span>SERVER</span></div><div className="handshake-step complete"><span>CLIENT</span><b>ACK</b><span>SERVER</span></div><div className="handshake-label flood-label">SYN FLOOD</div><div className="flood-step"><span>MANY REQUESTS</span><b>SYN</b><span>PENDING</span></div></div></article>

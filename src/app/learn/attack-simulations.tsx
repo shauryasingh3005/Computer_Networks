@@ -42,13 +42,9 @@ const networkScenarios = [
 ];
 
 const dosScenarios = [
-  { id: "dos", name: "DoS / DDoS", loadLabel: "Service demand", defense: "Traffic filtering, rate limits, and upstream DDoS protection" },
-  { id: "syn", name: "SYN flood", loadLabel: "Pending connections", defense: "SYN cookies and connection limits" },
-  { id: "udp", name: "UDP flood", loadLabel: "Datagram demand", defense: "Filtering and upstream rate limits" },
-  { id: "http", name: "HTTP flood", loadLabel: "Application requests", defense: "WAF rules, bot detection, and caching" },
-  { id: "slowloris", name: "Slowloris", loadLabel: "Open connections", defense: "Connection timeouts and reverse proxies" },
-  { id: "dns", name: "DNS amplification", loadLabel: "Amplified response demand", defense: "Restrict recursive DNS and apply response rate limiting" },
-  { id: "smurf", name: "Smurf attack", loadLabel: "Amplified ICMP demand", defense: "Disable directed broadcasts and apply ingress filtering" },
+  { id: "dos", name: "DoS", loadLabel: "Service demand", description: "Model demand concentrated from a single source against one service.", defense: "Traffic filtering, rate limits, and resource limits" },
+  { id: "ddos", name: "DDoS", loadLabel: "Distributed service demand", description: "Model demand arriving from many distributed sources at once.", defense: "Upstream DDoS protection, traffic scrubbing, and CDN capacity" },
+  { id: "syn", name: "SYN flood", loadLabel: "Pending connections", description: "Model incomplete TCP handshakes consuming pending connection capacity.", defense: "SYN cookies, connection limits, and upstream filtering" },
 ];
 
 type AttackWalkthroughScenario = {
@@ -133,7 +129,7 @@ function ServiceLoadDemo() {
 
   return (
     <section className="attack-simulation" aria-labelledby="dos-demo-title">
-      <div className="demo-heading"><div><div className="section-kicker">CAPACITY MODEL</div><h3 id="dos-demo-title">Service availability simulator</h3><p>Adjust illustrative attack pressure and compare the impact of mitigations.</p></div><span className="demo-badge">NO NETWORK TRAFFIC</span></div>
+      <div className="demo-heading"><div><div className="section-kicker">CAPACITY MODEL</div><h3 id="dos-demo-title">Service availability simulator</h3><p>{scenario.description}</p></div><span className="demo-badge">NO NETWORK TRAFFIC</span></div>
       <div className="demo-control-row">
         <label className="demo-select-label">SCENARIO<select value={scenarioId} onChange={(event) => changeScenario(event.target.value)}>{dosScenarios.map((item) => <option value={item.id} key={item.id}>{item.name}</option>)}</select></label>
         <button className="button button-primary demo-run-button" type="button" onClick={() => setAttackActive((active) => !active)}><Activity size={14} />{attackActive ? "Stop scenario" : "Run scenario"}</button>
