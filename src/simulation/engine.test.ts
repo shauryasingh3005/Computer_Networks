@@ -77,11 +77,145 @@ describe("ICMP ping simulation", () => {
     expect(result.events.map((event) => event.kind)).toContain("packet-dropped");
   });
 
-  it("does not route to a remote subnet without router support", () => {
+  it("requires a configured gateway for a remote subnet", () => {
     const remote = { ...topology, devices: topology.devices.map((device) => device.id === "pc-b" ? { ...device, ipAddress: "192.168.2.20" } : device) };
     const result = new NetworkSimulator().ping(remote, "pc-a", "pc-b");
     expect(result.reachable).toBe(false);
-    expect(result.failure).toContain("outside the local subnet");
+    expect(result.failure).toContain("no default gateway");
+  });
+});
+
+describe("routed ICMP ping simulation", () => {
+  const singleRouter: SimTopology = {
+    devices: [
+      { id: "pc-a", name: "PC-A", type: "host", ipAddress: "192.168.1.10", subnetMask: "255.255.255.0", macAddress: "02:00:00:00:00:01", defaultGateway: "192.168.1.1" },
+      { id: "sw-a", name: "SW-A", type: "switch", ipAddress: "192.168.1.2", subnetMask: "255.255.255.0", macAddress: "02:00:00:00:00:02" },
+      { id: "router", name: "R1", type: "router", ipAddress: "0.0.0.0", subnetMask: "0.0.0.0", macAddress: "02:00:00:00:00:03", interfaces: [
+        { id: "eth0", name: "eth0", ipAddress: "192.168.1.1", subnetMask: "255.255.255.0", macAddress: "02:00:00:01:00:01", linkId: "a-r", enabled: true },
+        { id: "eth1", name: "eth1", ipAddress: "192.168.2.1", subnetMask: "255.255.255.0", macAddress: "02:00:00:01:00:02", linkId: "r-b", enabled: true },
+      ], staticRoutes: [] },
+      { id: "sw-b", name: "SW-B", type: "switch", ipAddress: "192.168.2.2", subnetMask: "255.255.255.0", macAddress: "02:00:00:00:00:04" },
+      { id: "pc-b", name: "PC-B", type: "host", ipAddress: "192.168.2.20", subnetMask: "255.255.255.0", macAddress: "02:00:00:00:00:05", defaultGateway: "192.168.2.1" },
+    ],
+    links: [
+      { id: "a-sw", sourceId: "pc-a", targetId: "sw-a", up: true, delayMs: 2 },
+      { id: "a-r", sourceId: "sw-a", targetId: "router", up: true, delayMs: 3 },
+      { id: "r-b", sourceId: "router", targetId: "sw-b", up: true, delayMs: 5 },
+      { id: "b-sw", sourceId: "sw-b", targetId: "pc-b", up: true, delayMs: 7 },
+    ],
+  };
+
+  it("routes an echo request and reply through a router and uses link delays for RTT", () => {
+    const result = new NetworkSimulator().ping(singleRouter, "pc-a", "pc-b");
+    expect(result.reachable).toBe(true);
+    expect(result.rttMs).toBe(34);
+    expect(result.events.map((event) => event.kind)).toEqual(expect.arrayContaining([
+      "arp-request", "arp-response", "icmp-echo-request", "router-received", "route-lookup", "ttl-decremented",
+      "router-forwarded", "packet-delivered", "icmp-echo-reply",
+    ]));
+    expect(result.events.some((event) => event.linkId === "r-b")).toBe(true);
+    expect(result.events.every((event, index) => event.sequence === index)).toBe(true);
+  });
+
+  it("reports an unreachable or invalid default gateway", () => {
+    const missingGateway = {
+      ...singleRouter,
+      devices: singleRouter.devices.map((device) => device.id === "pc-a" ? { ...device, defaultGateway: undefined } : device),
+    };
+    expect(new NetworkSimulator().ping(missingGateway, "pc-a", "pc-b").failure).toContain("no default gateway");
+
+    const invalidGateway = {
+      ...singleRouter,
+      devices: singleRouter.devices.map((device) => device.id === "pc-a" ? { ...device, defaultGateway: "192.168.3.1" } : device),
+    };
+    expect(new NetworkSimulator().ping(invalidGateway, "pc-a", "pc-b").failure).toContain("outside the local subnet");
+  });
+
+  it("rejects duplicate router interface addresses and missing routes", () => {
+    const duplicateAddress = {
+      ...singleRouter,
+      devices: singleRouter.devices.map((device) => device.id === "router"
+        ? { ...device, interfaces: device.interfaces?.map((networkInterface) => ({ ...networkInterface, ipAddress: "192.168.1.10" })) }
+        : device),
+    };
+    expect(new NetworkSimulator().ping(duplicateAddress, "pc-a", "pc-b").failure).toContain("assigned to both");
+
+    const noRoute = {
+      ...singleRouter,
+      devices: singleRouter.devices.map((device) => device.id === "router"
+        ? { ...device, interfaces: device.interfaces?.slice(0, 1) }
+        : device),
+    };
+    expect(new NetworkSimulator().ping(noRoute, "pc-a", "pc-b").failure).toContain("No matching route");
+  });
+
+  it("reports a missing return route and inactive router link", () => {
+    const withoutReturnRoute = {
+      ...singleRouter,
+      devices: singleRouter.devices.map((device) => device.id === "pc-b"
+        ? { ...device, defaultGateway: undefined }
+        : device),
+    };
+    expect(new NetworkSimulator().ping(withoutReturnRoute, "pc-a", "pc-b").failure).toContain("Missing return route");
+
+    const broken = {
+      ...singleRouter,
+      links: singleRouter.links.map((link) => link.id === "r-b" ? { ...link, up: false } : link),
+    };
+    expect(new NetworkSimulator().ping(broken, "pc-a", "pc-b").failure).toContain("is down");
+  });
+
+  it("drops a routed packet when TTL expires at the first router", () => {
+    const result = new NetworkSimulator().ping(singleRouter, "pc-a", "pc-b", { ttl: 1 });
+    expect(result.reachable).toBe(false);
+    expect(result.failure).toContain("TTL expired");
+    expect(result.events.map((event) => event.kind)).toContain("packet-dropped");
+  });
+
+  it("uses static routes across two routers in both directions", () => {
+    const multiRouter: SimTopology = {
+      devices: [
+        singleRouter.devices[0],
+        singleRouter.devices[1],
+        {
+          id: "r1", name: "R1", type: "router", ipAddress: "0.0.0.0", subnetMask: "0.0.0.0", macAddress: "02:00:00:00:01:01",
+          interfaces: [
+            { id: "eth0", name: "eth0", ipAddress: "192.168.1.1", subnetMask: "255.255.255.0", macAddress: "02:00:00:01:00:01", linkId: "a-r1", enabled: true },
+            { id: "eth1", name: "eth1", ipAddress: "10.0.0.1", subnetMask: "255.255.255.252", macAddress: "02:00:00:01:00:02", linkId: "r1-r2", enabled: true },
+          ],
+          staticRoutes: [{ destination: "192.168.2.0", prefixLength: 24, nextHop: "10.0.0.2", interfaceName: "eth1", metric: 1 }],
+        },
+        {
+          id: "r2", name: "R2", type: "router", ipAddress: "0.0.0.0", subnetMask: "0.0.0.0", macAddress: "02:00:00:00:02:01",
+          interfaces: [
+            { id: "eth0", name: "eth0", ipAddress: "10.0.0.2", subnetMask: "255.255.255.252", macAddress: "02:00:00:02:00:01", linkId: "r1-r2", enabled: true },
+            { id: "eth1", name: "eth1", ipAddress: "192.168.2.1", subnetMask: "255.255.255.0", macAddress: "02:00:00:02:00:02", linkId: "r2-b", enabled: true },
+          ],
+          staticRoutes: [{ destination: "192.168.1.0", prefixLength: 24, nextHop: "10.0.0.1", interfaceName: "eth0", metric: 1 }],
+        },
+        singleRouter.devices[3],
+        singleRouter.devices[4],
+      ],
+      links: [
+        { id: "a-sw", sourceId: "pc-a", targetId: "sw-a", up: true, delayMs: 2 },
+        { id: "a-r1", sourceId: "sw-a", targetId: "r1", up: true, delayMs: 3 },
+        { id: "r1-r2", sourceId: "r1", targetId: "r2", up: true, delayMs: 4 },
+        { id: "r2-b", sourceId: "r2", targetId: "sw-b", up: true, delayMs: 5 },
+        { id: "b-sw", sourceId: "sw-b", targetId: "pc-b", up: true, delayMs: 7 },
+      ],
+    };
+    const result = new NetworkSimulator().ping(multiRouter, "pc-a", "pc-b");
+    expect(result.reachable).toBe(true);
+    expect(result.rttMs).toBe(42);
+    expect(result.events.filter((event) => event.kind === "route-lookup").map((event) => event.deviceId)).toEqual(["r1", "r2", "r2", "r1"]);
+
+    const unreachableNextHop = {
+      ...multiRouter,
+      devices: multiRouter.devices.map((device) => device.id === "r1"
+        ? { ...device, staticRoutes: device.staticRoutes?.map((route) => ({ ...route, nextHop: "10.0.0.3" })) }
+        : device),
+    };
+    expect(new NetworkSimulator().ping(unreachableNextHop, "pc-a", "pc-b").failure).toContain("next hop 10.0.0.3 is unreachable");
   });
 });
 

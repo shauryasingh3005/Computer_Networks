@@ -8,8 +8,8 @@ import {
 import { Activity, ArrowLeft, Cable, CircleAlert, CircleCheck, Cpu, Network, Play, Plus, Router, Server, StepForward, Trash2, X } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { NetworkSimulator } from "@/simulation/engine";
-import type { DeviceType, PingResult, SimTopology, SimulationEvent } from "@/simulation/types";
+import { calculateSubnet, NetworkSimulator } from "@/simulation/engine";
+import type { DeviceType, PingResult, RouterInterface, SimTopology, SimulationEvent, StaticRoute } from "@/simulation/types";
 
 type DeviceData = {
   name: string;
@@ -17,6 +17,9 @@ type DeviceData = {
   ipAddress: string;
   subnetMask: string;
   macAddress: string;
+  defaultGateway?: string;
+  interfaces?: RouterInterface[];
+  staticRoutes?: StaticRoute[];
 };
 type DeviceNode = Node<DeviceData, "device">;
 type LinkData = { up: boolean; delayMs: number };
@@ -42,11 +45,12 @@ const initialEdges: NetworkEdge[] = [
 
 function DeviceCard({ data, selected }: NodeProps<DeviceNode>) {
   const { icon: Icon, label, color } = deviceMeta[data.type];
+  const displayAddress = data.type === "router" ? data.interfaces?.[0]?.ipAddress || "unconfigured" : data.ipAddress;
   return (
     <div className={`device-card device-${color}${selected ? " device-selected" : ""}`}>
       <Handle type="target" position={Position.Left} />
       <div className="device-card-icon"><Icon size={18} /></div>
-      <div className="device-card-copy"><strong>{data.name}</strong><small>{label} · {data.ipAddress}</small></div>
+      <div className="device-card-copy"><strong>{data.name}</strong><small>{label} · {displayAddress}</small></div>
       <Handle type="source" position={Position.Right} />
     </div>
   );
@@ -59,6 +63,10 @@ const eventLabels: Record<SimulationEvent["kind"], string> = {
   "arp-request": "ARP request",
   "arp-response": "ARP reply",
   "frame-forwarded": "Frame forwarded",
+  "router-received": "Router received packet",
+  "route-lookup": "Routing-table lookup",
+  "ttl-decremented": "TTL decremented",
+  "router-forwarded": "Router forwarded packet",
   "icmp-echo-request": "ICMP echo request",
   "icmp-echo-reply": "ICMP echo reply",
   "tcp-syn": "TCP SYN",
@@ -135,6 +143,7 @@ export default function BuilderPage() {
         ipAddress: `192.168.1.${octet}`,
         subnetMask: "255.255.255.0",
         macAddress: `02:00:00:00:00:${String(index).padStart(2, "0")}`,
+        ...(type === "router" ? { interfaces: [], staticRoutes: [] } : {}),
       },
     };
     setNodes((current) => [...current, nextNode]);
@@ -146,6 +155,70 @@ export default function BuilderPage() {
   function updateDevice(field: keyof DeviceData, value: string) {
     if (!selectedNodeId) return;
     setNodes((current) => current.map((node) => node.id === selectedNodeId ? { ...node, data: { ...node.data, [field]: value } } : node));
+    resetSimulation();
+  }
+
+  function updateRouterInterface(interfaceId: string, updates: Partial<RouterInterface>) {
+    if (!selectedNodeId) return;
+    setNodes((current) => current.map((node) => node.id === selectedNodeId
+      ? { ...node, data: { ...node.data, interfaces: (node.data.interfaces ?? []).map((item) => item.id === interfaceId ? { ...item, ...updates } : item) } }
+      : node));
+    resetSimulation();
+  }
+
+  function addRouterInterface() {
+    if (!selectedNode || selectedNode.data.type !== "router") return;
+    const existingInterfaces = selectedNode.data.interfaces ?? [];
+    let index = 1;
+    while (existingInterfaces.some((item) => item.id === `eth${index - 1}`)) index += 1;
+    const adjacentLink = edges.find((edge) => (edge.source === selectedNode.id || edge.target === selectedNode.id)
+      && !existingInterfaces.some((item) => item.linkId === edge.id));
+    const networkInterface: RouterInterface = {
+      id: `eth${index - 1}`,
+      name: `eth${index - 1}`,
+      ipAddress: `192.168.${index}.1`,
+      subnetMask: "255.255.255.0",
+      macAddress: `02:00:00:01:00:${String(index).padStart(2, "0")}`,
+      linkId: adjacentLink?.id ?? "",
+      enabled: true,
+    };
+    setNodes((current) => current.map((node) => node.id === selectedNode.id
+      ? { ...node, data: { ...node.data, interfaces: [...(node.data.interfaces ?? []), networkInterface] } }
+      : node));
+    resetSimulation();
+  }
+
+  function removeRouterInterface(interfaceId: string) {
+    if (!selectedNodeId) return;
+    setNodes((current) => current.map((node) => node.id === selectedNodeId
+      ? { ...node, data: { ...node.data, interfaces: (node.data.interfaces ?? []).filter((item) => item.id !== interfaceId) } }
+      : node));
+    resetSimulation();
+  }
+
+  function updateStaticRoute(index: number, updates: Partial<StaticRoute>) {
+    if (!selectedNodeId) return;
+    setNodes((current) => current.map((node) => node.id === selectedNodeId
+      ? { ...node, data: { ...node.data, staticRoutes: (node.data.staticRoutes ?? []).map((route, routeIndex) => routeIndex === index ? { ...route, ...updates } : route) } }
+      : node));
+    resetSimulation();
+  }
+
+  function addStaticRoute() {
+    if (!selectedNode || selectedNode.data.type !== "router") return;
+    const networkInterface = selectedNode.data.interfaces?.[0];
+    if (!networkInterface) return;
+    setNodes((current) => current.map((node) => node.id === selectedNode.id
+      ? { ...node, data: { ...node.data, staticRoutes: [...(node.data.staticRoutes ?? []), { destination: "10.0.0.0", prefixLength: 24, nextHop: "192.168.1.2", interfaceName: networkInterface.id, metric: 1, type: "static" }] } }
+      : node));
+    resetSimulation();
+  }
+
+  function removeStaticRoute(index: number) {
+    if (!selectedNodeId) return;
+    setNodes((current) => current.map((node) => node.id === selectedNodeId
+      ? { ...node, data: { ...node.data, staticRoutes: (node.data.staticRoutes ?? []).filter((_, routeIndex) => routeIndex !== index) } }
+      : node));
     resetSimulation();
   }
 
@@ -198,25 +271,61 @@ export default function BuilderPage() {
           <div className="builder-divider" />
           <div className="builder-panel-heading compact"><div><span className="section-kicker">SIMULATION</span><h2>Ping test</h2></div></div>
           <label className="field-label" htmlFor="ping-source">Source device</label>
-          <select id="ping-source" value={sourceId} onChange={(event) => setSourceId(event.target.value)}>{nodes.filter((node) => node.data.type !== "switch").map((node) => <option key={node.id} value={node.id}>{node.data.name} · {node.data.ipAddress}</option>)}</select>
+          <select id="ping-source" value={sourceId} onChange={(event) => setSourceId(event.target.value)}>{nodes.filter((node) => node.data.type === "host" || node.data.type === "server").map((node) => <option key={node.id} value={node.id}>{node.data.name} · {node.data.ipAddress}</option>)}</select>
           <label className="field-label" htmlFor="ping-destination">Destination device</label>
-          <select id="ping-destination" value={destinationId} onChange={(event) => setDestinationId(event.target.value)}>{nodes.filter((node) => node.data.type !== "switch").map((node) => <option key={node.id} value={node.id}>{node.data.name} · {node.data.ipAddress}</option>)}</select>
+          <select id="ping-destination" value={destinationId} onChange={(event) => setDestinationId(event.target.value)}>{nodes.filter((node) => node.data.type === "host" || node.data.type === "server").map((node) => <option key={node.id} value={node.id}>{node.data.name} · {node.data.ipAddress}</option>)}</select>
           <button className="button button-primary run-ping" onClick={runPing}><Activity size={15} /> Run ping</button>
           {result && <div className={`ping-result ${result.reachable ? "success" : "failure"}`}>{result.reachable ? <CircleCheck size={15} /> : <CircleAlert size={15} />}<span>{result.reachable ? `Reply received · ${result.rttMs} ms` : result.failure}</span></div>}
           <div className="builder-divider" />
           {selectedNode ? <section className="inspector-section">
             <div className="builder-panel-heading compact"><div><span className="section-kicker">DEVICE INSPECTOR</span><h2>{selectedNode.data.name}</h2></div><button className="small-icon-button" aria-label="Close inspector" onClick={() => setSelectedNodeId(undefined)}><X size={14} /></button></div>
             <label className="field-label" htmlFor="device-name">Device name</label><input id="device-name" value={selectedNode.data.name} onChange={(event) => updateDevice("name", event.target.value)} />
-            <label className="field-label" htmlFor="device-ip">IPv4 address</label><input id="device-ip" value={selectedNode.data.ipAddress} onChange={(event) => updateDevice("ipAddress", event.target.value)} spellCheck={false} />
-            <label className="field-label" htmlFor="device-mask">Subnet mask</label><input id="device-mask" value={selectedNode.data.subnetMask} onChange={(event) => updateDevice("subnetMask", event.target.value)} spellCheck={false} />
+            {selectedNode.data.type !== "router" && <>
+              <label className="field-label" htmlFor="device-ip">IPv4 address</label><input id="device-ip" value={selectedNode.data.ipAddress} onChange={(event) => updateDevice("ipAddress", event.target.value)} spellCheck={false} />
+              <label className="field-label" htmlFor="device-mask">Subnet mask</label><input id="device-mask" value={selectedNode.data.subnetMask} onChange={(event) => updateDevice("subnetMask", event.target.value)} spellCheck={false} />
+            </>}
+            {(selectedNode.data.type === "host" || selectedNode.data.type === "server") && <>
+              <label className="field-label" htmlFor="device-gateway">Default gateway</label><input id="device-gateway" value={selectedNode.data.defaultGateway ?? ""} onChange={(event) => updateDevice("defaultGateway", event.target.value)} placeholder="e.g. 192.168.1.1" spellCheck={false} />
+            </>}
             <div className="inspector-readonly"><span>MAC ADDRESS</span><code>{selectedNode.data.macAddress}</code></div>
+            {selectedNode.data.type === "router" && <>
+              <div className="builder-divider" />
+              <div className="builder-panel-heading compact"><div><span className="section-kicker">ROUTER CONFIGURATION</span><h2>Interfaces</h2></div><button className="text-button" onClick={addRouterInterface}>Add interface</button></div>
+              {(selectedNode.data.interfaces ?? []).map((networkInterface) => {
+                const linked = edges.filter((edge) => edge.source === selectedNode.id || edge.target === selectedNode.id);
+                const subnet = calculateSubnet(networkInterface.ipAddress, networkInterface.subnetMask);
+                return <div className="inspector-section" key={networkInterface.id}>
+                  <div className="link-status-row"><strong>{networkInterface.name}</strong><label className="demo-checkbox"><input type="checkbox" checked={networkInterface.enabled} onChange={(event) => updateRouterInterface(networkInterface.id, { enabled: event.target.checked })} /><span>Enabled</span></label><button className="text-button" onClick={() => removeRouterInterface(networkInterface.id)}>Remove</button></div>
+                  <label className="field-label" htmlFor={`${networkInterface.id}-link`}>Connected link</label>
+                  <select id={`${networkInterface.id}-link`} value={networkInterface.linkId} onChange={(event) => updateRouterInterface(networkInterface.id, { linkId: event.target.value })}>
+                    <option value="">Select a link</option>
+                    {linked.map((edge) => {
+                      const neighborId = edge.source === selectedNode.id ? edge.target : edge.source;
+                      const neighbor = nodes.find((node) => node.id === neighborId);
+                      return <option value={edge.id} key={edge.id}>{neighbor?.data.name ?? neighborId}</option>;
+                    })}
+                  </select>
+                  <label className="field-label" htmlFor={`${networkInterface.id}-ip`}>Interface IPv4 address</label><input id={`${networkInterface.id}-ip`} value={networkInterface.ipAddress} onChange={(event) => updateRouterInterface(networkInterface.id, { ipAddress: event.target.value })} spellCheck={false} />
+                  <label className="field-label" htmlFor={`${networkInterface.id}-mask`}>Subnet mask</label><input id={`${networkInterface.id}-mask`} value={networkInterface.subnetMask} onChange={(event) => updateRouterInterface(networkInterface.id, { subnetMask: event.target.value })} spellCheck={false} />
+                  <div className="inspector-readonly"><span>DIRECTLY CONNECTED NETWORK</span><code>{subnet ? `${subnet.networkAddress}/${subnet.prefixLength}` : "Invalid interface configuration"}</code></div>
+                </div>;
+              })}
+              <div className="builder-panel-heading compact"><div><span className="section-kicker">ROUTING TABLE</span><h2>Static routes</h2></div><button className="text-button" disabled={!selectedNode.data.interfaces?.length} onClick={addStaticRoute}>Add route</button></div>
+              {(selectedNode.data.staticRoutes ?? []).map((route, index) => <div className="inspector-section" key={`${route.interfaceName}-${index}`}>
+                <label className="field-label" htmlFor={`route-destination-${index}`}>Destination network</label><input id={`route-destination-${index}`} value={route.destination} onChange={(event) => updateStaticRoute(index, { destination: event.target.value })} spellCheck={false} />
+                <label className="field-label" htmlFor={`route-prefix-${index}`}>Prefix length</label><input id={`route-prefix-${index}`} type="number" min="0" max="32" value={route.prefixLength} onChange={(event) => updateStaticRoute(index, { prefixLength: Number(event.target.value) })} />
+                <label className="field-label" htmlFor={`route-next-hop-${index}`}>Next-hop router IP</label><input id={`route-next-hop-${index}`} value={route.nextHop} onChange={(event) => updateStaticRoute(index, { nextHop: event.target.value })} spellCheck={false} />
+                <label className="field-label" htmlFor={`route-interface-${index}`}>Outgoing interface</label><select id={`route-interface-${index}`} value={route.interfaceName} onChange={(event) => updateStaticRoute(index, { interfaceName: event.target.value })}>{(selectedNode.data.interfaces ?? []).map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select>
+                <button className="remove-link" onClick={() => removeStaticRoute(index)}><Trash2 size={14} />Remove route</button>
+              </div>)}
+            </>}
           </section> : selectedEdge ? <section className="inspector-section">
             <div className="builder-panel-heading compact"><div><span className="section-kicker">LINK INSPECTOR</span><h2>Connection</h2></div><button className="small-icon-button" aria-label="Close inspector" onClick={() => setSelectedEdgeId(undefined)}><X size={14} /></button></div>
             <div className="link-status-row"><span className={`link-state ${selectedEdge.data?.up ? "up" : "down"}`} />{selectedEdge.data?.up ? "Link up" : "Link down"}<button className="text-button" onClick={() => { setEdges((current) => current.map((edge) => edge.id === selectedEdge.id ? { ...edge, data: { ...edge.data!, up: !edge.data?.up }, label: edge.data?.up ? "DOWN" : `${edge.data?.delayMs ?? 2} ms` } : edge)); resetSimulation(); }}>{selectedEdge.data?.up ? "Disable" : "Enable"}</button></div>
             <label className="field-label" htmlFor="link-delay">Propagation delay (ms)</label><input id="link-delay" type="number" min="0" value={selectedEdge.data?.delayMs ?? 2} onChange={(event) => { const delayMs = Number(event.target.value); setEdges((current) => current.map((edge) => edge.id === selectedEdge.id ? { ...edge, data: { ...edge.data!, delayMs }, label: `${delayMs} ms` } : edge)); resetSimulation(); }} />
             <button className="remove-link" onClick={() => { setEdges((current) => current.filter((edge) => edge.id !== selectedEdge.id)); setSelectedEdgeId(undefined); resetSimulation(); }}><Trash2 size={14} />Remove link</button>
           </section> : <div className="inspector-empty"><Cable size={17} /><span>Select a device or link to inspect its configuration.</span></div>}
-          <div className="builder-footnote">This simulator currently supports same-subnet ICMP ping through active Ethernet links and switches.</div>
+          <div className="builder-footnote">Hosts use their default gateway for remote subnets. Routers forward packets through active interfaces and connected or static routes.</div>
         </aside>
 
         <main className="topology-workspace">
@@ -224,7 +333,7 @@ export default function BuilderPage() {
           <div className="flow-canvas">
             <ReactFlow
               nodes={nodes}
-              edges={edges.map((edge) => ({ ...edge, animated: Boolean(activeEvent?.deviceId && (edge.source === activeEvent.deviceId || edge.target === activeEvent.deviceId) && activeEvent.kind !== "packet-dropped"), style: { stroke: edge.data?.up === false ? "#9b615c" : undefined, strokeDasharray: edge.data?.up === false ? "5 4" : undefined }, labelStyle: { fill: edge.data?.up === false ? "#d0928b" : "#8e9b91", fontSize: 10 } }))}
+              edges={edges.map((edge) => ({ ...edge, animated: Boolean(activeEvent?.linkId === edge.id || (!activeEvent?.linkId && activeEvent?.deviceId && (edge.source === activeEvent.deviceId || edge.target === activeEvent.deviceId) && activeEvent.kind !== "packet-dropped")), style: { stroke: edge.data?.up === false ? "#9b615c" : undefined, strokeDasharray: edge.data?.up === false ? "5 4" : undefined }, labelStyle: { fill: edge.data?.up === false ? "#d0928b" : "#8e9b91", fontSize: 10 } }))}
               nodeTypes={nodeTypes}
               onNodesChange={(changes) => { onNodesChange(changes); if (changes.some((change) => change.type === "remove")) resetSimulation(); }}
               onEdgesChange={(changes) => { onEdgesChange(changes); if (changes.some((change) => change.type === "remove")) resetSimulation(); }}

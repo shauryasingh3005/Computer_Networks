@@ -9,6 +9,14 @@
 5. Select the SW-1-to-PC-B link, disable it, and rerun. The engine should report no active Layer 2 path.
 6. Re-enable the link and verify delivery again.
 
+## Inter-subnet ping through a router
+
+1. In `/builder`, create two switches, one router, and two hosts. Connect each host to its local switch and connect both switches to the router.
+2. Set PC-A to `192.168.1.10` with mask `255.255.255.0` and gateway `192.168.1.1`. Set PC-B to `192.168.2.20` with the same mask and gateway `192.168.2.1`.
+3. Select the router and add an interface for each router-to-switch link. Assign `192.168.1.1/24` to the PC-A side and `192.168.2.1/24` to the PC-B side.
+4. Run ping. The timeline shows local ARP, router lookup/TTL/forwarding events, and the independently routed echo reply. RTT uses the configured link delays.
+5. To test multiple routers, add a static route on each router for the remote LAN, using the adjacent router's interface IP as next hop and the connected transit interface as output.
+
 ## Troubleshooting challenge
 
 1. Open `/debugging` and test connectivity before changing anything.

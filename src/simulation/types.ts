@@ -1,5 +1,24 @@
 export type DeviceType = "host" | "router" | "switch" | "server";
 
+export interface RouterInterface {
+  id: string;
+  name: string;
+  ipAddress: string;
+  subnetMask: string;
+  macAddress: string;
+  linkId: string;
+  enabled: boolean;
+}
+
+export interface StaticRoute {
+  destination: string;
+  prefixLength: number;
+  nextHop: string;
+  interfaceName: string;
+  metric: number;
+  type?: "connected" | "static";
+}
+
 export interface SimDevice {
   id: string;
   name: string;
@@ -8,6 +27,8 @@ export interface SimDevice {
   subnetMask: string;
   macAddress: string;
   defaultGateway?: string;
+  interfaces?: RouterInterface[];
+  staticRoutes?: StaticRoute[];
 }
 
 export interface SimLink {
@@ -28,6 +49,10 @@ export type SimulationEventKind =
   | "arp-request"
   | "arp-response"
   | "frame-forwarded"
+  | "router-received"
+  | "route-lookup"
+  | "ttl-decremented"
+  | "router-forwarded"
   | "icmp-echo-request"
   | "icmp-echo-reply"
   | "tcp-syn"
@@ -43,7 +68,12 @@ export interface SimulationEvent {
   kind: SimulationEventKind;
   packetId?: string;
   deviceId?: string;
+  linkId?: string;
   message: string;
+}
+
+export interface PingOptions {
+  ttl?: number;
 }
 
 export interface PingResult {

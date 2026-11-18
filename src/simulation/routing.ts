@@ -1,12 +1,7 @@
-import { ipv4ToNumber } from "./engine";
+import { ipv4ToNumber } from "./ipv4";
+import type { StaticRoute } from "./types";
 
-export interface StaticRoute {
-  destination: string;
-  prefixLength: number;
-  nextHop: string;
-  interfaceName: string;
-  metric: number;
-}
+export type { StaticRoute } from "./types";
 
 export function longestPrefixMatch(routes: StaticRoute[], destinationAddress: string): StaticRoute | undefined {
   const destination = ipv4ToNumber(destinationAddress);
